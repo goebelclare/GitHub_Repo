@@ -1,4 +1,4 @@
-# DataSci Warriors (Group 5) GitHub_Repo
+# DataSci Warriors (Group 5) GitHub Repo
 ![Group Picture](https://res.cloudinary.com/springboard-images/image/upload/w_1080,c_limit,q_auto,f_auto,fl_lossy/wordpress/2018/03/Ban4.png)
 # Table of Contents
 1. [Team Members](#team_members)
