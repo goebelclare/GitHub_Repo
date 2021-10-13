@@ -22,11 +22,11 @@
 
 ### Timeline
 - [X] Topic Chosen - Internal Team Deadline - Oct 12th
-- [] Find Datasets - Internal Team Deadline - Oct 15th
-- [] Topic Proposal - Internal Team Deadline - Oct 15th
-- [] Topic Proposal - Class Deadline - Oct 29th
-- [] Presentation and Technical Analysis (Code) - Class Deadline - Nov 2nd
-- [] RMarkdown and HTML Final Report - Class Deadline - Nov 9th
+- [ ] Find Datasets - Internal Team Deadline - Oct 15th
+- [ ] Topic Proposal - Internal Team Deadline - Oct 15th
+- [ ] Topic Proposal - Class Deadline - Oct 29th
+- [ ] Presentation and Technical Analysis (Code) - Class Deadline - Nov 2nd
+- [ ] RMarkdown and HTML Final Report - Class Deadline - Nov 9th
 
 ### Topic Proposal
 * [Topic Proposal Google Doc](https://docs.google.com/document/d/1GICM9eaFOKcWz0VVfAzKjpEHWHDFOBg0cgpfGuXar6w/edit)
