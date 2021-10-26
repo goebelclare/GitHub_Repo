@@ -1,5 +1,5 @@
 ---
-title: "Midterm_Project"
+title: "Midterm Project: Affects of Air Pollution on Countries"
 author: "DataSci Warriors (Group 5)"
 date: "`r Sys.Date()`"
 output:
@@ -16,26 +16,241 @@ output:
     toc_depth: '3'
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+library(tidyverse)
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
 ```
 
-## R Markdown
+# 1. Motivation
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Air pollution affects **blah blah blah...**, our group wanted to explore how air pollution has changed over time and affect countries differently. Specifically, we wanted to analyze how a country's progress can either increase, decrease, or not have observable impact on the affects of air pollution.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# 2. Data Sources and Data Wrangling
 
-```{r cars}
-summary(cars)
+## Data Sources
+For our analysis, we will be working with 4 main data sources shown in the table below:
+
+
+| Data                                                      | Source                | Link                                                                                       |
+|-----------------------------------------------------------|-----------------------|--------------------------------------------------------------------------------------------|
+| Deaths Due to Air Pollution of Countries from 1990 - 2017 | Kaggle                | [Link](https://www.kaggle.com/akshat0giri/death-due-to-air-pollution-19902017)             |
+| GDP Annual Growth of Countries from 1960 - 2020           | Kaggle via WorldBank  | [Link](https://www.kaggle.com/zackerym/gdp-annual-growth-for-each-country-1960-2020)       |
+| United Nations Population and Region Data                 | United Nations        | [Link](https://population.un.org/wpp/Download/Standard/Population/)                        |
+| United Nations ISO-alpha3 code                            | United Nations        | [Link](https://unstats.un.org/unsd/methodology/m49/)                                       |
+: Fig 1: Data Sources
+
+The main features in our datasets will include:
+
+| Feature                         | Data Type               | Unit of Measure       | Notes and Assumptions                                                                      |
+|---------------------------------|-------------------------|-----------------------|--------------------------------------------------------------------------------------------|
+| GDP (Gross Domestic Product)    | **Don't Forget**        | $USD                  | This is our chosen proxy for measuring a country's progress.                              |
+| Population Size                 | **Don't Forget**        | thousands of people   | Annual UN estimated                                                                       |
+| Deaths due to Air Pollution     | **Don't Forget**        | deaths per million    | This is our chosen proxy for measuring the negative affects of air pollution.             |
+| Country                         | **Don't Forget**        | N/A                   | **2XX countries**                                                                         |
+| SDG Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Region Classification.                                 |
+| Sub Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Sub-Region Classification.                             |
+| ISO-alpha3 Country Code         | **Don't Forget**        | N/A                   | Standard for identifying countries (text ID).                                             |
+| M49 Country Code                | **Don't Forget**        | N/A                   | Standard for identifying countries (numerical ID).                                        |
+| Year                            | **Don't Forget**        | N/A                   | **19XX to 20XX**                                                                          |
+| GDP per Capita                  | **Don't Forget**        | $USD per person       | Normalization of GDP to compare between population sizes (calculated).                    |
+: Fig 2: Key Features
+
+
+## Data Wrangling
+While data from Kaggle are already in a format to be cleaned, downloaded data from United Nations required a little data wrangling. Mainly, we needed to extract just countries' data from the Excel workbooks and into their own contained csv files. Since we only need to do this once and programming it would take significant time to choose the specific cells that we need, we opted to perform this step outside of R and in Excel. Note that if this were a part of a real production data pipeline, we would take the time to program the data extraction but would likely choose a different programming language such as Python that is a bit more robust in these types of tasks like web scraping and data transformations in Pandas.
+
+![UN Data Sample Messy](images/un_excel_mess.png)
+: *Fig 3: Sample screenshot of data downloaded from UN including unnecessary elements like banners and other regional data.*
+
+
+![UN Data Sample Cleaned](images/un_excel_cleaned.png)
+: *Fig 4: Sample screenshot of transformed UN dataset.*
+
+# 3. Load, Clean, and Inspect Data
+
+## Load Data
+
+```{r 3.1, include=TRUE}
+country_codes_df <- read.csv("data/country_codes.csv", header = TRUE, sep = ",")
+air_pollution_df <- read.csv("data/death-rates-from-air-pollution.csv", header = TRUE, sep = ",")
+gdp_df <- read.csv("data/GDP_annual_growth.csv", header = TRUE, sep = ",")
+population_region_df <- read.csv("data/population_in_thousands_region.csv", header = TRUE, sep = ",")
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r 3.2, include=TRUE}
+str(country_codes_df)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r 3.3, include=TRUE}
+str(air_pollution_df)
+```
+
+```{r 3.4, include=TRUE}
+str(gdp_df)
+```
+
+```{r 3.5, include=TRUE}
+str(population_region_df)
+```
+
+## Clean Data
+
+First thing that we need to drop unnecessary columns and set datatypes (factor, num, etc.).
+
+### Clean *air_pollution_df*:
+```{r 3.6, include=TRUE}
+# Remove columns
+air_pollution_df_cleaned <- subset(air_pollution_df, select = -c(Indoor.air.pollution..deaths.per.100.000., Outdoor.particulate.matter..deaths.per.100.000., Outdoor.ozone.pollution..deaths.per.100.000.))
+
+# Set datatypes
+air_pollution_df_cleaned$Entity = factor(air_pollution_df_cleaned$Entity)
+air_pollution_df_cleaned$Code = factor(air_pollution_df_cleaned$Code)
+air_pollution_df_cleaned$Year = factor(air_pollution_df_cleaned$Year)
+
+# Rename columns
+air_pollution_df_cleaned <- rename(air_pollution_df_cleaned, Country = Entity, ISO.alpha3.code = Code, Deaths.Air.Pollution.per.100k = Air.pollution..total...deaths.per.100.000.)
+
+str(air_pollution_df_cleaned)
+```
+
+### Clean *gdp_df*:
+```{r 3.7, include=TRUE}
+# Remove columns
+gdp_df_cleaned <- subset(gdp_df, select = -c(Indicator.Name, Indicator.Code, X))
+
+# Pivot wide to long dataset (data melt)
+gdp_df_cleaned <- gdp_df_cleaned %>%
+  pivot_longer(
+    cols = starts_with("X"), 
+    names_to = "Year", 
+    values_to = "GDP.USD", 
+    values_drop_na = TRUE
+  )
+
+# Remove characters from column
+gdp_df_cleaned$Year<-gsub("X","",as.character(gdp_df_cleaned$Year))
+
+# Set datatypes
+gdp_df_cleaned$Country.Name = factor(gdp_df_cleaned$Country.Name)
+gdp_df_cleaned$Country.Code = factor(gdp_df_cleaned$Country.Code)
+gdp_df_cleaned$Year = factor(gdp_df_cleaned$Year)
+
+# Rename columns
+gdp_df_cleaned <- rename(gdp_df_cleaned, Country = Country.Name, ISO.alpha3.code = Country.Code)
+
+str(gdp_df_cleaned)
+```
+
+### Clean *population_region_df*:
+```{r 3.8, include=TRUE}
+# Remove columns
+population_region_df_cleaned <- subset(population_region_df, select = -c(Notes, Type, Parent.code))
+
+# Pivot wide to long dataset (data melt)
+population_region_df_cleaned <- population_region_df_cleaned %>%
+  pivot_longer(
+    cols = starts_with("X"), 
+    names_to = "Year", 
+    values_to = "Population.thousands", 
+    values_drop_na = TRUE
+  )
+
+# Remove characters from column
+population_region_df_cleaned$Year<-gsub("X","",as.character(population_region_df_cleaned$Year))
+population_region_df_cleaned <- as.data.frame(apply(population_region_df_cleaned, 2, function(x) gsub("\\s+", "", x))) 
+
+# Set datatypes
+population_region_df_cleaned$Country = factor(population_region_df_cleaned$Country)
+population_region_df_cleaned$SDGRegion = factor(population_region_df_cleaned$SDGRegion)
+population_region_df_cleaned$Country.code = factor(population_region_df_cleaned$Country.code)
+population_region_df_cleaned$SubRegion = factor(population_region_df_cleaned$SubRegion)
+population_region_df_cleaned$Year = factor(population_region_df_cleaned$Year)
+population_region_df_cleaned$Population.thousands = as.numeric(population_region_df_cleaned$Population.thousands)
+
+# Rename columns
+population_region_df_cleaned <- rename(population_region_df_cleaned, M49.code = Country.code)
+
+str(population_region_df_cleaned)
+```
+
+### Clean *population_region_df*:
+```{r 3.9, include=TRUE}
+# Set datatypes
+country_codes_df$M49.code = factor(country_codes_df$M49.code)
+country_codes_df$Country.or.Area = factor(country_codes_df$Country.or.Area)
+country_codes_df$ISO.alpha3.code = factor(country_codes_df$ISO.alpha3.code)
+
+str(country_codes_df)
+```
+
+### Final DataFrame Construction
+Now let's merge our 4 datasets into one using a series of inner joins using country code and year as keys depending on the specific join. We are using inner joins because we want to drop all null values which would mean either a country does not have a country code or we have more years of data than our smallest year range (the air pollution dataset).
+
+```{r 3.10, include=TRUE}
+# Join datasets
+final_df <- merge(x = air_pollution_df_cleaned, y = country_codes_df, by = 'ISO.alpha3.code')
+final_df <- merge(x = final_df, y = gdp_df_cleaned, by = c('ISO.alpha3.code', 'Year'))
+final_df <- merge(x = final_df, y = population_region_df_cleaned, by = c('M49.code', 'Year'))
+
+# Remove columns
+final_df <- subset(final_df, select = -c(Country.or.Area, Country.y, Country))
+
+# Calculate GDP per capita 
+final_df$gdp.per.capita <- final_df$GDP.USD / final_df$Population.thousands
+
+str(final_df)
+```
+
+Our dataset is finally ready to be analyzed.
+
+# 4. EDA - Exploratory Data Analysis
+
+## Quick Plots
+
+Let's start our EDA process by just looking at some quick plots to look at the distribution of data.
+
+### Histogram of Numerical Features
+```{r 4.1, include=TRUE, fig.align="center"}
+ggplot() + geom_histogram(data = final_df, aes(x = Deaths.Air.Pollution.per.100k))  +
+  labs(title = "Distribution of Deaths per 100k from Air Polution")
+ggplot() + geom_histogram(data = final_df, aes(x = Population.thousands))  +
+  labs(title = "Distribution of Population")
+ggplot() + geom_histogram(data = final_df, aes(x = gdp.per.capita))  +
+  labs(title = "Distribution of GDP per Capita")
+```
+: *Fig 5,6,7: Histogram of numerical features.*
+
+Looks like *deaths.air.pollution.per.100k*, *population*, and *gdp.per.capita* are not normal and are all right skewed. 
+
+### Boxplot of Numerical Features
+
+Let's look at a boxplot for the outliers.
+
+```{r 4.2, include=TRUE, fig.align="center"}
+ggplot(data = final_df,aes(x = SDGRegion, y=Deaths.Air.Pollution.per.100k)) + 
+  geom_boxplot() +
+  xlab("SDG Region") +
+  ylab("Deaths per 100k from Air Polution") +
+  labs(title = "BoxPlot of Deaths per 100k from Air Pollution vs SDG Region") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 5))
+
+```
+
+  
+### Map of Countries
+
+## SMART Questions
+
+# 5. Main Research Question
+
+# 6. Conclusion
+
+# 7. Bibliography
