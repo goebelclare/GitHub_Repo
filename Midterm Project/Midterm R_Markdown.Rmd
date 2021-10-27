@@ -20,7 +20,12 @@ output:
 # some of common options (and the defaults) are: 
 # include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
 library(ezids)
-library(tidyverse)
+library(tidyverse) #install.packages("tidyverse")
+library(rworldmap) #install.packages("rworldmap")
+library(tmap) #install.packages("tmap")
+library(sp) #install.packages("spData")
+library(spData)
+library(sf) #install.packages("sf")
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
@@ -31,12 +36,12 @@ options(scientific=T, digits = 3)
 
 # 1. Motivation
 
-Air pollution affects **blah blah blah...**, our group wanted to explore how air pollution has changed over time and affect countries differently. Specifically, we wanted to analyze how a country's progress can either increase, decrease, or not have observable impact on the affects of air pollution.
+Air pollution affects **blah blah blah...** and with the increased worsening in climate and air quality, **blah blah blah...**. Our group wanted to explore how air pollution has changed over time and affect countries differently. Specifically, we wanted to analyze how a country's progress can either increase, decrease, or not have observable impact on the affects of air pollution. In laymen terms, does air pollution affect underdeveloped countries disproportionally?
 
 # 2. Data Sources and Data Wrangling
 
 ## Data Sources
-For our analysis, we will be working with 4 main data sources shown in the table below:
+For our analysis, we will be working with 5 main data sources shown in the table below:
 
 
 | Data                                                      | Source                | Link                                                                                       |
@@ -45,22 +50,24 @@ For our analysis, we will be working with 4 main data sources shown in the table
 | GDP Annual Growth of Countries from 1960 - 2020           | Kaggle via WorldBank  | [Link](https://www.kaggle.com/zackerym/gdp-annual-growth-for-each-country-1960-2020)       |
 | United Nations Population and Region Data                 | United Nations        | [Link](https://population.un.org/wpp/Download/Standard/Population/)                        |
 | United Nations ISO-alpha3 code                            | United Nations        | [Link](https://unstats.un.org/unsd/methodology/m49/)                                       |
+| spData for Map Geometries                                 | spData for Mapping    | [Link](https://nowosad.github.io/spData/)                                                  |
 : Fig 1: Data Sources
 
 The main features in our datasets will include:
 
 | Feature                         | Data Type               | Unit of Measure       | Notes and Assumptions                                                                      |
 |---------------------------------|-------------------------|-----------------------|--------------------------------------------------------------------------------------------|
-| GDP (Gross Domestic Product)    | **Don't Forget**        | $USD                  | This is our chosen proxy for measuring a country's progress.                              |
-| Population Size                 | **Don't Forget**        | thousands of people   | Annual UN estimated                                                                       |
-| Deaths due to Air Pollution     | **Don't Forget**        | deaths per million    | This is our chosen proxy for measuring the negative affects of air pollution.             |
-| Country                         | **Don't Forget**        | N/A                   | **2XX countries**                                                                         |
-| SDG Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Region Classification.                                 |
-| Sub Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Sub-Region Classification.                             |
-| ISO-alpha3 Country Code         | **Don't Forget**        | N/A                   | Standard for identifying countries (text ID).                                             |
-| M49 Country Code                | **Don't Forget**        | N/A                   | Standard for identifying countries (numerical ID).                                        |
-| Year                            | **Don't Forget**        | N/A                   | **19XX to 20XX**                                                                          |
-| GDP per Capita                  | **Don't Forget**        | $USD per person       | Normalization of GDP to compare between population sizes (calculated).                    |
+| GDP (Gross Domestic Product)    | **Don't Forget**        | $USD                  | This is our chosen proxy for measuring a country's progress.                               |
+| Population Size                 | **Don't Forget**        | thousands of people   | Annual UN estimated                                                                        |
+| Deaths due to Air Pollution     | **Don't Forget**        | deaths per million    | This is our chosen proxy for measuring the negative affects of air pollution.              |
+| Country                         | **Don't Forget**        | N/A                   | 231 countries                                                                              |
+| SDG Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Region Classification.                                  |
+| Sub Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Sub-Region Classification.                              |
+| ISO-alpha3 Country Code         | **Don't Forget**        | N/A                   | Standard for identifying countries (text ID).                                              |
+| ISO-alpha2 Country Code         | **Don't Forget**        | N/A                   | Another standard for identifying countries (text ID).                                      |
+| M49 Country Code                | **Don't Forget**        | N/A                   | Another standard for identifying countries (numerical ID).                                 |
+| Year                            | **Don't Forget**        | N/A                   | 1990 to 2017                                                                               |
+| GDP per Capita                  | **Don't Forget**        | $USD per person       | Normalization of GDP to compare between population sizes (calculated).                     |
 : Fig 2: Key Features
 
 
@@ -99,6 +106,10 @@ str(gdp_df)
 
 ```{r 3.5, include=TRUE}
 str(population_region_df)
+```
+
+```{r 3.5.1, include=TRUE}
+str(world)
 ```
 
 ## Clean Data
@@ -187,9 +198,23 @@ str(population_region_df_cleaned)
 country_codes_df$M49.code = factor(country_codes_df$M49.code)
 country_codes_df$Country.or.Area = factor(country_codes_df$Country.or.Area)
 country_codes_df$ISO.alpha3.code = factor(country_codes_df$ISO.alpha3.code)
+country_codes_df$ISO.alpha2.code = factor(country_codes_df$ISO.alpha2.code)
 
 str(country_codes_df)
 ```
+
+### Clean *world*:
+```{r 3.9.5, include=TRUE}
+# Set datatypes
+world$iso_a2 = factor(world$iso_a2)
+
+# Remove columns
+world_df_cleaned <- subset(world, select = c(iso_a2, geom))
+
+str(world_df_cleaned)
+```
+
+Note that we only have geometries for 175 countries, some will not be able to be plot on a map but that is okay.
 
 ### Final DataFrame Construction
 Now let's merge our 4 datasets into one using a series of inner joins using country code and year as keys depending on the specific join. We are using inner joins because we want to drop all null values which would mean either a country does not have a country code or we have more years of data than our smallest year range (the air pollution dataset).
@@ -199,6 +224,7 @@ Now let's merge our 4 datasets into one using a series of inner joins using coun
 final_df <- merge(x = air_pollution_df_cleaned, y = country_codes_df, by = 'ISO.alpha3.code')
 final_df <- merge(x = final_df, y = gdp_df_cleaned, by = c('ISO.alpha3.code', 'Year'))
 final_df <- merge(x = final_df, y = population_region_df_cleaned, by = c('M49.code', 'Year'))
+final_df <- merge(x = final_df, y = world_df_cleaned, by.x = 'ISO.alpha2.code', by.y = 'iso_a2', all.x = TRUE) #left join
 
 # Remove columns
 final_df <- subset(final_df, select = -c(Country.or.Area, Country.y, Country))
@@ -243,14 +269,105 @@ ggplot(data = final_df,aes(x = SDGRegion, y=Deaths.Air.Pollution.per.100k)) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 5))
 
 ```
+: *Fig 8: Boxplot of Deaths per 100k from Air Pollution vs SDG Region*
 
+Interesting to note that Australia/New Zealand, Europe, North America seem to have the lowest deaths per 100k from air pollution and are all fairly compactly packed together (low variance) compared to other regions around the world. Let's take another look but at SubRegions. 
+
+```{r 4.3, include=TRUE, fig.align="center"}
+ggplot(data = final_df,aes(x = SubRegion, y=Deaths.Air.Pollution.per.100k)) + 
+  geom_boxplot() +
+  xlab("Sub Regions") +
+  ylab("Deaths per 100k from Air Polution") +
+  labs(title = "BoxPlot of Deaths per 100k from Air Pollution vs Sub Regions") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 4))
+```
+: *Fig 9: Boxplot of Deaths per 100k from Air Pollution vs Sub Region*
+
+Separating out into an even granular grouping of regions show some trends where Australia/New Zealand, North America, Northern Europe, and Western Europe all have low deaths per 100k and have low variance. Historically, these regions consist of countries that have been considered *'First World'* before our first year of analysis of 1990. We will dig into this more later in our SMART questions.
+
+What do the GDP per capita of these regions look like comparatively? Let's take a look.
+
+```{r 4.4, include=TRUE, fig.align="center"}
+ggplot(data = final_df,aes(x = SubRegion, y=gdp.per.capita)) + 
+  geom_boxplot() +
+  xlab("Sub Regions") +
+  ylab("GDP per Capita (USD per person)") +
+  labs(title = "BoxPlot of GDP per Capita vs Sub Regions") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 4))
+```
+: *Fig 10: Boxplot of GDP per Capita vs Sub Region*
+
+Interesting to observe that the same subregions that have low deaths caused by air pollution also have high GDP per capita comparatively. We will try to see if we can quantify this relationship later on in our main research analysis.
   
 ### Map of Countries
 
+Plotting maps and maps with intensities will be useful for us to visualize our data and the results of our analysis.
+
+```{r 4.5, include=TRUE, fig.align="center"}
+# Convert to sf object so we can plot it
+final_df_sf = st_as_sf(final_df)
+
+# Choose relevant columns
+final_df_sf_regions <- subset(final_df_sf, select = c(SDGRegion, SubRegion))
+final_df_sf_intensities <- subset(final_df_sf, select = c(gdp.per.capita, Deaths.Air.Pollution.per.100k, Population.thousands))
+```
+
+```{r 4.6, include=TRUE, fig.align="center"}
+plot(final_df_sf_regions)
+```
+: *Fig 11: Global Map of SDGRegions and SubRegions*
+
+```{r 4.7, include=TRUE, fig.align="center"}
+plot(final_df_sf_intensities)
+```
+: *Fig 12: Global Intensity Map of Key Numerical Features, 1990 to 2017*
+
+Looks like some inverse correlation between gdp.per.capita and deaths.air.pollution.per.100k.
+
+
+We can also use ggplot2 to have a bit more control over map plotting.
+
+```{r 4.8, include=TRUE, fig.align="center"}
+g1 = ggplot() + geom_sf(data = final_df_sf, aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283))
+
+g1
+```
+: *Fig 13: Global Intensity Map of Deaths due to Air Pollution per 100k People, 1990 to 2017*
+
+```{r 4.9, include=TRUE, fig.align="center"}
+g2 = ggplot() + geom_sf(data = final_df_sf[final_df_sf$SDGRegion == 'EASTERNANDSOUTH-EASTERNASIA' & final_df_sf$Year == 2017, ], aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283))
+
+g2
+```
+: *Fig 14: Intensity Map of Deaths due to Air Pollution per 100k People in East and Southeastern Asia, 2017*
+
 ## SMART Questions
 
+### 1. Is there a relationship between population size and pollution?
+
+### 2. Which countries have the highest and lowest air pollution? How is this related to the region?
+
+### 3. Which years have the lowest and highest pollution?
+
+### 4. How does air pollution increase over time? More specifically, are death rates in recent X amount of years higher than death rates from groups of X years before?
+
+
 # 5. Main Research Question
+
+## Do lower GDP countries have more deaths per 100k due to air pollution?
+
+### Is there a correlation between GDP per capita and deaths caused by pollution? Is it linear? How strong is the correlation?
+
+### Is there a difference in means of death caused by pollution between low, mid, and high GDP per capita?
 
 # 6. Conclusion
 
 # 7. Bibliography
+
+| Name                                                      | Link                                                                                       |
+|-----------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| Making maps with R                                        | [Link](https://geocompr.robinlovelace.net/adv-map.html)                                    |
+| Geographic data in R                                      | [Link](https://geocompr.robinlovelace.net/spatial-class.html#intro-sf)                     |
+| Maps in ggplot2                                           | [Link](https://ggplot2-book.org/maps.html)                                                 |
+| ggplot2 color scales                                      | [Link](https://spielmanlab.github.io/introverse/articles/color_fill_scales.html)           |
+: Fig X: References
