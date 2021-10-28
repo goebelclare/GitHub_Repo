@@ -19,6 +19,7 @@ output:
 ```{r init, include=FALSE}
 # some of common options (and the defaults) are: 
 # include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+
 library(ezids)
 library(tidyverse) #install.packages("tidyverse")
 library(rworldmap) #install.packages("rworldmap")
@@ -26,6 +27,9 @@ library(tmap) #install.packages("tmap")
 library(sp) #install.packages("spData")
 library(spData)
 library(sf) #install.packages("sf")
+library(ggpubr) #install.packages("ggpubr")
+loadPkg("faraway")
+
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
@@ -34,9 +38,25 @@ options(scientific=T, digits = 3)
 # use scipen=999 to prevent scientific notation at all times
 ```
 
-# 1. Motivation
+# 1. Introduction
 
-Air pollution affects **blah blah blah...** and with the increased worsening in climate and air quality, **blah blah blah...**. Our group wanted to explore how air pollution has changed over time and affect countries differently. Specifically, we wanted to analyze how a country's progress can either increase, decrease, or not have observable impact on the affects of air pollution. In laymen terms, does air pollution affect underdeveloped countries disproportionally?
+## Motivation
+
+Air pollution affects **blah blah blah...** and with the increased worsening in climate and air quality, **blah blah blah...**. Our group wanted to explore how air pollution has changed over time and affect countries differently. Specifically, we wanted to analyze how a country's progress can either increase, decrease, or not have observable impact on the affects of air pollution. In laymen terms, does air pollution affect underdeveloped countries disproportionately?
+
+## Set Up
+
+Before we start, we need to ensure that we have all the relevant libraries installed and imported.
+
+Run these in the console to install packages in addition to the ezids package.
+```
+install.packages("tidyverse")
+install.packages("rworldmap")
+install.packages("tmap")
+install.packages("spData")
+install.packages("sf")
+install.packages("ggpubr")
+```
 
 # 2. Data Sources and Data Wrangling
 
@@ -57,17 +77,17 @@ The main features in our datasets will include:
 
 | Feature                         | Data Type               | Unit of Measure       | Notes and Assumptions                                                                      |
 |---------------------------------|-------------------------|-----------------------|--------------------------------------------------------------------------------------------|
-| GDP (Gross Domestic Product)    | **Don't Forget**        | $USD                  | This is our chosen proxy for measuring a country's progress.                               |
-| Population Size                 | **Don't Forget**        | thousands of people   | Annual UN estimated                                                                        |
-| Deaths due to Air Pollution     | **Don't Forget**        | deaths per million    | This is our chosen proxy for measuring the negative affects of air pollution.              |
-| Country                         | **Don't Forget**        | N/A                   | 231 countries                                                                              |
-| SDG Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Region Classification.                                  |
-| Sub Region                      | **Don't Forget**        | N/A                   | UN's Sustainable Development Goals Sub-Region Classification.                              |
-| ISO-alpha3 Country Code         | **Don't Forget**        | N/A                   | Standard for identifying countries (text ID).                                              |
-| ISO-alpha2 Country Code         | **Don't Forget**        | N/A                   | Another standard for identifying countries (text ID).                                      |
-| M49 Country Code                | **Don't Forget**        | N/A                   | Another standard for identifying countries (numerical ID).                                 |
-| Year                            | **Don't Forget**        | N/A                   | 1990 to 2017                                                                               |
-| GDP per Capita                  | **Don't Forget**        | $USD per person       | Normalization of GDP to compare between population sizes (calculated).                     |
+| GDP (Gross Domestic Product)    | Numerical, Continuous   | $USD                  | This is our chosen proxy for measuring a country's progress.                               |
+| Population Size                 | Numerical, Continuous   | thousands of people   | Annual UN estimated                                                                        |
+| Deaths due to Air Pollution     | Numerical, Continuous   | deaths per million    | This is our chosen proxy for measuring the negative affects of air pollution.              |
+| Country                         | Qualitative, Categorical| N/A                   | 231 countries                                                                              |
+| SDG Region                      | Qualitative, Categorical| N/A                   | UN's Sustainable Development Goals Region Classification.                                  |
+| Sub Region                      | Qualitative, Categorical| N/A                   | UN's Sustainable Development Goals Sub-Region Classification.                              |
+| ISO-alpha3 Country Code         | Qualitative, Categorical| N/A                   | Standard for identifying countries (text ID).                                              |
+| ISO-alpha2 Country Code         | Qualitative, Categorical| N/A                   | Another standard for identifying countries (text ID).                                      |
+| M49 Country Code                | Numerical, Categorical  | N/A                   | Another standard for identifying countries (numerical ID).                                 |
+| Year                            | Numerical, Categorical  | N/A                   | 1990 to 2017                                                                               |
+| GDP per Capita                  | Numerical, Continuous   | $USD per person       | Normalization of GDP to compare between population sizes (calculated).                     |
 : Fig 2: Key Features
 
 
@@ -357,6 +377,51 @@ g2
 ## Do lower GDP countries have more deaths per 100k due to air pollution?
 
 ### Is there a correlation between GDP per capita and deaths caused by pollution? Is it linear? How strong is the correlation?
+
+Let's first look at the general fit on the overall data.
+
+```{r 5.1, include=TRUE, fig.align="center"}
+fit1 <- lm(Deaths.Air.Pollution.per.100k ~ gdp.per.capita, data=final_df_sf)
+
+ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
+  geom_point() +
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 400, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 350, aes(label = ..rr.label..))
+```
+: *Fig XX: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita.*
+
+From the plot, we observe that there is indeed a negative correlation between deaths due to air pollution per 100k and GDP per capita. However, the strength of that relationship is not particularly strong as the R^2^ is really low at `r summary(fit1)$r.squared`. This means that only 29% of the variance experienced in deaths due to air pollution per 100k is caused by GDP per capita in a linear relationship. 
+
+```{r 5.2, include=TRUE, fig.align="center"}
+final_df_sf_most_recent_5_yrs <- subset(final_df_sf, Year == c(2017, 2016, 2015, 2014, 2013))
+
+fit2 <- lm(Deaths.Air.Pollution.per.100k ~ gdp.per.capita, data=final_df_sf_most_recent_5_yrs)
+
+summary(fit2)
+print(vif(fit2))
+
+# plot(fit1)
+
+ggplot(final_df_sf_most_recent_5_yrs, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
+  geom_point() +
+  geom_smooth(method='lm')
+```
+```{r 5.3, include=TRUE, fig.align="center"}
+final_df_sf_asia <- subset(final_df_sf, SDGRegion == 'EASTERNANDSOUTH-EASTERNASIA')
+
+fit3 <- lm(Deaths.Air.Pollution.per.100k ~ log(gdp.per.capita), data=final_df_sf_asia)
+
+summary(fit3)
+print(vif(fit3))
+
+# plot(fit1)
+
+ggplot(final_df_sf, aes(log(gdp.per.capita), Deaths.Air.Pollution.per.100k)) +
+  geom_point() +
+  geom_smooth(method='lm') + 
+  facet_wrap(~SDGRegion, ncol = 4)
+```
 
 ### Is there a difference in means of death caused by pollution between low, mid, and high GDP per capita?
 
