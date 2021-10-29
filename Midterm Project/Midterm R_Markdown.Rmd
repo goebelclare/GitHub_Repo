@@ -155,7 +155,7 @@ str(air_pollution_df_cleaned)
 ### Clean *gdp_df*:
 ```{r 3.7, include=TRUE}
 # Remove columns
-gdp_df_cleaned <- subset(gdp_df, select = -c(Indicator.Name, Indicator.Code, X))
+gdp_df_cleaned <- subset(gdp_df, select = -c(Indicator.Name, Indicator.Code))
 
 # Pivot wide to long dataset (data melt)
 gdp_df_cleaned <- gdp_df_cleaned %>%
@@ -368,6 +368,97 @@ g2
 ### 2. Which countries have the highest and lowest air pollution? How is this related to the region?
 
 ### 3. Which years have the lowest and highest pollution?
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r 200, include=TRUE}
+str(air_pollution_df)
+```
+```{r 300, include=TRUE}
+# select what we need
+air_pollution_dfneed <- subset(air_pollution_df, select = -c(Code))
+```
+```{r 400, include=TRUE}
+# make Entity and year factor
+air_pollution_dfneed$Entity = factor(air_pollution_dfneed$Entity)
+air_pollution_dfneed$Year = factor(air_pollution_dfneed$Year)
+```
+```{r 500, include=TRUE}
+# sum up the death of each year
+sum_total <- aggregate(air_pollution_dfneed$Air.pollution..total...deaths.per.100.000. , by=list(Year=air_pollution_dfneed$Year), FUN=sum)
+
+names(sum_total)[names(sum_total) == 'x'] <- 'air_pollution_total'
+
+sum_indoor <- aggregate(air_pollution_dfneed$Indoor.air.pollution..deaths.per.100.000. , by=list(Year=air_pollution_dfneed$Year), FUN=sum)
+
+names(sum_indoor)[names(sum_indoor) == 'x'] <- 'air_pollution_indoor'
+
+sum_outdoorP <- aggregate(air_pollution_dfneed$Outdoor.particulate.matter..deaths.per.100.000. , by=list(Year=air_pollution_dfneed$Year), FUN=sum)
+
+names(sum_outdoorP)[names(sum_outdoorP) == 'x'] <- 'air_pollution_outdoorP'
+
+sum_outdoorO <- aggregate(air_pollution_dfneed$Outdoor.ozone.pollution..deaths.per.100.000. , by=list(Year=air_pollution_dfneed$Year), FUN=sum)
+
+names(sum_outdoorO)[names(sum_outdoorO) == 'x'] <- 'air_pollution_outdoorO'
+
+# Merge the new variables by year
+total1 <- merge(sum_total,sum_indoor, by="Year")
+total2 <- merge(sum_outdoorO,sum_outdoorP, by="Year")
+total3 <- merge(total1,total2, by="Year")
+
+# Make graph using year as X with total death
+library(ggplot2)
+# total
+ggplot(total3, aes(x=Year, y=air_pollution_total)) +
+    geom_bar(stat='identity', position='dodge')
+
+# indoor
+ggplot(total3, aes(x=Year, y=air_pollution_indoor)) +
+    geom_bar(stat='identity', position='dodge')
+# outdoor particulate
+ggplot(total3, aes(x=Year, y=air_pollution_outdoorP)) +
+    geom_bar(stat='identity', position='dodge')
+# outdoor ozone 
+ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
+    geom_bar(stat='identity', position='dodge')
+```
+```{r 600, include=TRUE}
+# The max and min years
+special1.1 <- sum_total[which.max(sum_total$air_pollution_total),]
+special1.2 <- sum_total[which.min(sum_total$air_pollution_total),]
+special1 <- rbind(special1.1, special1.2)  # Max and min of total
+
+special2.1 <- sum_indoor[which.max(sum_indoor$air_pollution_indoor),]
+special2.2 <- sum_indoor[which.min(sum_indoor$air_pollution_indoor),]
+special2 <- rbind(special2.1, special2.2)  # Max and min of indoor
+
+special3.1 <- sum_outdoorP[which.max(sum_outdoorP$air_pollution_outdoorP),]
+special3.2 <- sum_outdoorP[which.min(sum_outdoorP$air_pollution_outdoorP),]
+special3 <- rbind(special3.1, special3.2)  # Max and min of ondoorP
+
+special4.1 <- sum_outdoorO[which.max(sum_outdoorO$air_pollution_outdoorO),]
+special4.2 <- sum_outdoorO[which.min(sum_outdoorO$air_pollution_outdoorO),]
+special4 <- rbind(special4.1, special4.2)  # Max and min of ondoorO
+
+library("ggplot2")
+
+# Year of max and min of total pollution
+ggplot(special1, aes(x=Year, y=air_pollution_total)) +
+    geom_bar(stat='identity', position='dodge')
+# Year of max and min of indoor pollution
+ggplot(special2, aes(x=Year, y=air_pollution_indoor)) +
+    geom_bar(stat='identity', position='dodge')
+# Year of max and min of ourdoor particulate pollution
+ggplot(special3, aes(x=Year, y=air_pollution_outdoorP)) +
+    geom_bar(stat='identity', position='dodge')
+# Year of max and min of outdoor ozone pollution
+ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
+    geom_bar(stat='identity', position='dodge')
+```
+
 
 ### 4. How does air pollution increase over time? More specifically, are death rates in recent X amount of years higher than death rates from groups of X years before?
 
