@@ -37,10 +37,11 @@ library(sp) #install.packages("spData")
 library(spData)
 library(sf) #install.packages("sf")
 library(ggpubr) #install.packages("ggpubr")
+library(dplyr) #install.packages("dplyr")
 loadPkg("faraway")
 
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+knitr::opts_chunk$set(warning = F, results = "show", message = F)
 options(scientific=T, digits = 3) 
 options(scipen=999)
 # options(scipen=9, digits = 3) 
@@ -66,6 +67,7 @@ install.packages("tmap")
 install.packages("spData")
 install.packages("sf")
 install.packages("ggpubr")
+install.packages("dplyr")
 ```
 
 # 2. Data Sources and Data Wrangling
@@ -115,7 +117,7 @@ While data from Kaggle are already in a format to be cleaned, downloaded data fr
 
 ## Load Data
 
-```{r 3.1, results =T}
+```{r 3.1, results =T, echo=F}
 country_codes_df <- read.csv("data/country_codes.csv", header = TRUE, sep = ",")
 air_pollution_df <- read.csv("data/death-rates-from-air-pollution.csv", header = TRUE, sep = ",")
 gdp_df <- read.csv("data/GDP_annual_growth.csv", header = TRUE, sep = ",")
@@ -551,6 +553,7 @@ ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
 
 ### Is there a correlation between GDP per capita and deaths caused by pollution? Is it linear? How strong is the correlation?
 
+#### Linear Fit
 Let's first look at the general fit on the overall data.
 
 ```{r 5.1, include=TRUE, fig.align="center"}
@@ -562,43 +565,235 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   stat_regline_equation(label.y = 400, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 350, aes(label = ..rr.label..))
 ```
-: *Fig XX: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita.*
+: *Fig XX: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita, 1990 to 2017.*
 
-From the plot, we observe that there is indeed a negative correlation between deaths due to air pollution per 100k and GDP per capita. However, the strength of that relationship is not particularly strong as the R^2^ is really low at `r summary(fit1)$r.squared`. This means that only 29% of the variance experienced in deaths due to air pollution per 100k is caused by GDP per capita in a linear relationship. 
+From the plot, we observe that there is indeed a negative correlation between deaths due to air pollution per 100k and GDP per capita. However, the strength of that relationship is not particularly strong as the R^2^ is really low at `r summary(fit1)$r.squared`. This means that only 29% of the variance experienced in deaths due to air pollution per 100k is caused by GDP per capita in a linear relationship.
+
+Even looking at a each individual SDGRegion, their linear fits get better overall but are still not particularly strong with the highest being Australia/New Zealand and Europe at R^2^ of 0.56 and 0.55 respectively.
 
 ```{r 5.2, include=TRUE, fig.align="center"}
-final_df_sf_most_recent_5_yrs <- subset(final_df_sf, Year == c(2017, 2016, 2015, 2014, 2013))
+ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
+  geom_point(size=0.75) +
+  geom_smooth(method='lm') +
+  stat_regline_equation(label.y = 350,  aes(label = ..eq.label..), size=2) +
+  stat_regline_equation(label.y = 300, aes(label = ..rr.label..), size=2) +
+  theme_grey(base_size = 7) +
+  facet_wrap(~SDGRegion, ncol = 3, scales='free')
+```
+: *Fig XX: Linear models for each SDGRegion, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
 
-fit2 <- lm(Deaths.Air.Pollution.per.100k ~ gdp.per.capita, data=final_df_sf_most_recent_5_yrs)
+Let's now look at how time plays a part.
+```{r 5.2.5, include=TRUE, fig.align="center"}
+ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
+  geom_point(size=0.25) +
+  geom_smooth(method='lm') +
+  stat_regline_equation(label.y = 350,  aes(label = ..eq.label..), size=1.5) +
+  stat_regline_equation(label.y = 300, aes(label = ..rr.label..), size=1.5) +
+  theme_grey(base_size = 4) +
+  facet_wrap(~Year, ncol = 7, scales='free')
+```
+: *Fig XX: Linear models for each Year, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
+
+As observed, time does not seem to play a significant part in describing the relationship between deaths due to air pollution per 100k vs GDP per capita as the R^2^ stays roughly constant around 0.3 across all the years.
+
+#### Transformed Log Scale - Linear Fit
+
+Perhaps we should look at a non-linear fit. From our visuals, we see that every plot starts off at really high deaths due to air pollution per 100k then drops off dramatically as GDP per capita increases. However, the drop off begins to tamper off and asymptotically approaches some value. (*It will be interesting to see if we can generalize what that GDP per capita value is. Let's table that for later.*) We have seen this type of behavior before in log graphs like shown below.
+
+![Sample Log Graph](images/sample_log_graph.png)
+: *Fig XX: Sample log graph.*
+
+Our data seems to be a -log(x) instead of log(x). Let's transform our linear fit to a log fit by wrapping our features into a log() function and fitting back to a linear fit and see what the relationship is.
+
+```{r 5.3, include=TRUE, fig.align="center"}
+fit2 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita), data=final_df_sf)
 
 summary(fit2)
-print(vif(fit2))
+# print(vif(fit2))
 
-# plot(fit1)
+ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
+  geom_point(size=0.75) +
+  geom_smooth(method='lm') +
+  stat_regline_equation(label.y = 7,  aes(label = ..eq.label..), size=2) +
+  stat_regline_equation(label.y = 6, aes(label = ..rr.label..), size=2) +
+  theme_grey(base_size = 7) +
+  facet_wrap(~SDGRegion, ncol = 3, scales='free')
 
-ggplot(final_df_sf_most_recent_5_yrs, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
+ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
+  geom_point(size=0.25) +
+  geom_smooth(method='lm') +
+  stat_regline_equation(label.y = 7,  aes(label = ..eq.label..), size=1.5) +
+  stat_regline_equation(label.y = 6, aes(label = ..rr.label..), size=1.5) +
+  theme_grey(base_size = 4) +
+  facet_wrap(~Year, ncol = 7, scales='free')
+
+ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
   geom_point() +
-  geom_smooth(method='lm')
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 7, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 6, aes(label = ..rr.label..))
 ```
-```{r 5.3, include=TRUE, fig.align="center"}
-final_df_sf_asia <- subset(final_df_sf, SDGRegion == 'EASTERNANDSOUTH-EASTERNASIA')
+: *Fig XX, XX, XX: Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship across the board.*
 
-fit3 <- lm(Deaths.Air.Pollution.per.100k ~ log(gdp.per.capita), data=final_df_sf_asia)
+Across the board, the strength of our linear relationship increases dramatically when first transforming both features by the log() function first. The new R^2^ is now `r summary(fit2)$r.squared` which means around 74% of the variance in our target feature can be explained by this mathematical relationship.
 
-summary(fit3)
-print(vif(fit3))
+Let's test a few more regression models adding more features.
 
-# plot(fit1)
+```{r 5.4, include=TRUE, fig.align="center"}
+fit3 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion, data=final_df_sf)
+fit4 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year, data=final_df_sf)
+fit5 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year, data=final_df_sf)
 
-ggplot(final_df_sf, aes(log(gdp.per.capita), Deaths.Air.Pollution.per.100k)) +
-  geom_point() +
-  geom_smooth(method='lm') + 
-  facet_wrap(~SDGRegion, ncol = 4)
+print(summary(fit3)$r.squared)
+print(summary(fit4)$r.squared)
+print(summary(fit5)$r.squared)
+
+#print(vif(fit3))
+#print(vif(fit4))
+#print(vif(fit5))
 ```
+R^2^ values for adding more features are `r summary(fit3)$r.squared`, `r summary(fit4)$r.squared`, and `r summary(fit5)$r.squared`.
+
+```{r Q5.4.1, include=FALSE}
+knitr::opts_chunk$set(warning = F, results = "show", message = F)
+```
+```{r Q5.4.2, include=TRUE}
+xkablevif(fit3, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year')
+```
+
+```{r Q5.4.3, include=TRUE}
+xkablevif(fit4, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year.')
+```
+
+```{r Q5.4.4, include=TRUE}
+xkablevif(fit5, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year.')
+```
+
+```{r Q5.4.5, include=FALSE}
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+```
+
+Although adding more features into our regression model results in higher R^2^ values, the Variance Inflation Factor (VIF) for each are extremely high so we will reject those models as those added features are highly correlated with each other. Therefore, we will stick with our second model fit2.
+
+We can then predict a country's deaths caused from air pollution in a given year by using the country's GDP per capita with the following equation: 
+
+
+$$
+log(Deaths_{from~air~pollution|per~year|per~country} / 100,000) = 10.07849 - 0.38952 * log(GDP_{per capita}) ~~~~~~~~~~~~~~~~  eqn (1)
+$$
+
+or
+
+
+
+$$
+Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
+$$
 
 ### Is there a difference in means of death caused by pollution between low, mid, and high GDP per capita?
 
+Let's test if means of deaths caused by air pollution per 100k across different GDP per capita levels are not equal.
+
+H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~ = $\mu$~deaths_medium_gdp~ = $\mu$~deaths_high_gdp~
+
+H~1~: At least one of $\mu$~deaths_lowest_gdp~, $\mu$~deaths_low_gdp~, $\mu$~deaths_medium_gdp~, $\mu$~deaths_high_gdp~ is not equal
+
+Use $\alpha$ of 0.05.
+
+```{r Q5.9, include=TRUE}
+# divide df$am.spent 
+final_df_sf$qnt <- cut(final_df_sf$gdp.per.capita , breaks=quantile(final_df_sf$gdp.per.capita),
+                                    labels=1:4, include.lowest=TRUE)
+
+# check ranges
+tapply(final_df_sf$gdp.per.capita , final_df_sf$qnt , range)
+
+deaths_aov = aov(Deaths.Air.Pollution.per.100k ~ qnt, data=final_df_sf)
+
+deaths_aovsummary = summary(deaths_aov)
+deaths_aovsummary
+
+p = deaths_aovsummary[[1]][["Pr(>F)"]][[1]]
+```
+The p-value~test1~ is `r p`, which is lower than $\alpha$~0.05~. Therefore, we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~ = $\mu$~deaths_medium_gdp~ = $\mu$~deaths_high_gdp~. This means that there is statistically significant that at least one of the means of deaths in low, medium, and high GDP per capita are not the same. 
+
+I will conduct 4 2-sample t-tests:
+
+* Lowest GDP per capita's deaths does not equal Low GDP per capita's deaths
+    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
+    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
+* Low GDP per capita's deaths does not equal Medium GDP per capita's deaths
+    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
+    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
+* Medium GDP per capita's deaths does not equal High GDP per capita's deaths
+    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
+    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
+* Lowest GDP per capita's deaths does not equal High GDP per capita's deaths
+    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
+    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
+    
+I will use a two sample t-test for each and use $\alpha$ of 0.05.
+
+**Test 1**:
+
+```{r Q5.9.1, include=TRUE}
+ttest1 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,2), data=final_df_sf, conf=0.95)
+ttest1
+```
+
+p-value~test1~: `r format(ttest1$p.value, scientific=F)`
+
+p-value~test1~ < $\alpha$~0.05~ = `r ttest1$p.value < 0.05`
+
+Conclusion of test1: p-value~test1~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ is equal to $\mu$~deaths_low_gdp~ and accept our alternative hypothesis.
+
+**Test 2**:
+
+```{r Q5.9.2, include=TRUE}
+ttest2 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(2,3), data=final_df_sf, conf=0.95)
+ttest2
+```
+
+p-value~test2~: `r format(ttest2$p.value, scientific=F)`
+
+p-value~test2~ < $\alpha$~0.05~ = `r ttest2$p.value < 0.05`
+
+Conclusion of test2: p-value~test2~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_low_gdp~ is equal to $\mu$~deaths_medium_gdp~ and accept our alternative hypothesis.
+
+**Test 3**:
+
+```{r Q5.9.3, include=TRUE}
+ttest3 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(3,4), data=final_df_sf, conf=0.95)
+ttest3
+```
+
+p-value~test3~: `r format(ttest3$p.value, scientific=F)`
+
+p-value~test3~ < $\alpha$~0.05~ = `r ttest3$p.value < 0.05`
+
+Conclusion of test3: p-value~test3~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_medium_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
+
+**Test 3**:
+
+```{r Q5.9.4, include=TRUE}
+ttest4 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,4), data=final_df_sf, conf=0.95)
+ttest4
+```
+
+p-value~test4~: `r format(ttest4$p.value, scientific=F)`
+
+p-value~test4~ < $\alpha$~0.05~ = `r ttest4$p.value < 0.05`
+
+Conclusion of test4: p-value~test4~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
+
 # 6. Conclusion
+
+From all of our tests, we can confirm that the means of deaths caused by air pollution are statistically significant when grouped by different levels of GDP per capita. This reinforces the idea that deaths caused by air pollution has a significant relationship with GDP per capita and the strength and model can be quantified by *Equation 2*:
+
+$$
+Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
+$$
+: *Equation 2*
 
 # 7. Bibliography
 
@@ -608,4 +803,5 @@ ggplot(final_df_sf, aes(log(gdp.per.capita), Deaths.Air.Pollution.per.100k)) +
 | Geographic data in R                                      | [Link](https://geocompr.robinlovelace.net/spatial-class.html#intro-sf)                     |
 | Maps in ggplot2                                           | [Link](https://ggplot2-book.org/maps.html)                                                 |
 | ggplot2 color scales                                      | [Link](https://spielmanlab.github.io/introverse/articles/color_fill_scales.html)           |
+| Sample log graph                                          | [Link](https://saylordotorg.github.io/text_intermediate-algebra/s10-03-logarithmic-functions-and-thei.html)           |
 : Fig X: References
