@@ -41,7 +41,7 @@ library(dplyr) #install.packages("dplyr")
 loadPkg("faraway")
 
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+knitr::opts_chunk$set(warning = F, results = "show", message = F)
 options(scientific=T, digits = 3) 
 options(scipen=999)
 # options(scipen=9, digits = 3) 
@@ -117,7 +117,7 @@ While data from Kaggle are already in a format to be cleaned, downloaded data fr
 
 ## Load Data
 
-```{r 3.1, results =T}
+```{r 3.1, results =T, echo=F}
 country_codes_df <- read.csv("data/country_codes.csv", header = TRUE, sep = ",")
 air_pollution_df <- read.csv("data/death-rates-from-air-pollution.csv", header = TRUE, sep = ",")
 gdp_df <- read.csv("data/GDP_annual_growth.csv", header = TRUE, sep = ",")
@@ -679,16 +679,15 @@ We can then predict a country's deaths caused from air pollution in a given year
 
 
 $$
-log(Deaths_{from~air~pollution|per~year|per~country} / 100,000) = 10.07849 - 0.38952 * log(GDP_{per capita}) ~~~~~~~~~~~~~~~~~~~~~ eqn (1)
+log(Deaths_{from~air~pollution|per~year|per~country} / 100,000) = 10.07849 - 0.38952 * log(GDP_{per capita}) ~~~~~~~~~~~~~~~~  eqn (1)
 $$
-: *Equation 1*
 
 or
 
 
 
 $$
-Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~~~~~~ eqn (2)
+Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
 
 ### Is there a difference in means of death caused by pollution between low, mid, and high GDP per capita?
@@ -792,7 +791,7 @@ Conclusion of test4: p-value~test4~ is less than $\alpha$~0.05~, therefore we re
 From all of our tests, we can confirm that the means of deaths caused by air pollution are statistically significant when grouped by different levels of GDP per capita. This reinforces the idea that deaths caused by air pollution has a significant relationship with GDP per capita and the strength and model can be quantified by *Equation 2*:
 
 $$
-Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~~~~~~ eqn (2)
+Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
 : *Equation 2*
 
