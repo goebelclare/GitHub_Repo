@@ -6,7 +6,7 @@ output:
   rmdformats::readthedown:
     highlight: kate  
   html_document:
-    code_folding: hide
+    code_folding: show
     number_sections: false
     toc: yes
     toc_depth: 3
@@ -41,7 +41,7 @@ library(dplyr) #install.packages("dplyr")
 loadPkg("faraway")
 
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-knitr::opts_chunk$set(warning = F, results = "show", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
 options(scipen=999)
 # options(scipen=9, digits = 3) 
