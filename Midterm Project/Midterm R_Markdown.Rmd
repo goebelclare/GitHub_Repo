@@ -124,23 +124,23 @@ gdp_df <- read.csv("data/GDP_annual_growth.csv", header = TRUE, sep = ",")
 population_region_df <- read.csv("data/population_in_thousands_region.csv", header = TRUE, sep = ",")
 ```
 
-```{r 3.2, results =T}
+```{r 3.2, results =T, echo=F}
 str(country_codes_df)
 ```
 
-```{r 3.3, results =T}
+```{r 3.3, results =T, echo=F}
 str(air_pollution_df)
 ```
 
-```{r 3.4, results =T}
+```{r 3.4, results =T, echo=F}
 str(gdp_df)
 ```
 
-```{r 3.5, results =T}
+```{r 3.5, results =T, echo=F}
 str(population_region_df)
 ```
 
-```{r 3.5.1, results =T}
+```{r 3.5.1, results =T, echo=F}
 str(world)
 ```
 
@@ -149,7 +149,7 @@ str(world)
 First thing that we need to drop unnecessary columns and set datatypes (factor, num, etc.).
 
 ### Clean *air_pollution_df*:
-```{r 3.6, results =T}
+```{r 3.6, results =T, echo=F}
 # Remove columns
 air_pollution_df_cleaned <- subset(air_pollution_df, select = -c(Indoor.air.pollution..deaths.per.100.000., Outdoor.particulate.matter..deaths.per.100.000., Outdoor.ozone.pollution..deaths.per.100.000.))
 
@@ -165,7 +165,7 @@ str(air_pollution_df_cleaned)
 ```
 
 ### Clean *gdp_df*:
-```{r 3.7, results =T}
+```{r 3.7, results =T, echo=F}
 # Remove columns
 gdp_df_cleaned <- subset(gdp_df, select = -c(Indicator.Name, Indicator.Code))
 
@@ -193,7 +193,7 @@ str(gdp_df_cleaned)
 ```
 
 ### Clean *population_region_df*:
-```{r 3.8, results =T}
+```{r 3.8, results =T, echo=F}
 # Remove columns
 population_region_df_cleaned <- subset(population_region_df, select = -c(Notes, Type, Parent.code))
 
@@ -225,7 +225,7 @@ str(population_region_df_cleaned)
 ```
 
 ### Clean *population_region_df*:
-```{r 3.9, results =T}
+```{r 3.9, results =T, echo=F}
 # Set datatypes
 country_codes_df$M49.code = factor(country_codes_df$M49.code)
 country_codes_df$Country.or.Area = factor(country_codes_df$Country.or.Area)
@@ -236,7 +236,7 @@ str(country_codes_df)
 ```
 
 ### Clean *world*:
-```{r 3.9.5, results =T}
+```{r 3.9.5, results =T, echo=F}
 # Set datatypes
 world$iso_a2 = factor(world$iso_a2)
 
@@ -251,7 +251,7 @@ Note that we only have geometries for 175 countries, some will not be able to be
 ### Final DataFrame Construction
 Now let's merge our 4 datasets into one using a series of inner joins using country code and year as keys depending on the specific join. We are using inner joins because we want to drop all null values which would mean either a country does not have a country code or we have more years of data than our smallest year range (the air pollution dataset).
 
-```{r 3.10, results =T}
+```{r 3.10, results =T, echo=F}
 # Join datasets
 final_df <- merge(x = air_pollution_df_cleaned, y = country_codes_df, by = 'ISO.alpha3.code')
 final_df <- merge(x = final_df, y = gdp_df_cleaned, by = c('ISO.alpha3.code', 'Year'))
@@ -276,7 +276,7 @@ Our dataset is finally ready to be analyzed.
 Let's start our EDA process by just looking at some quick plots to look at the distribution of data.
 
 ### Histogram of Air Pollution Induced Deaths, Population, and GDP per Capita
-```{r 4.1, results='markup', fig.align="center"}
+```{r 4.1, results='markup', fig.align="center", echo=F}
 #Deaths
 death_hist <- ggplot() + 
       geom_histogram(data = final_df, aes(x = Deaths.Air.Pollution.per.100k), bins=30, color="darkblue", fill="steelblue", binwidth = 5)  +
@@ -365,7 +365,7 @@ Looks like *deaths.air.pollution.per.100k*, *population*, and *gdp.per.capita* a
 
 Let's look at a boxplot for the outliers.
 
-```{r 4.2, results='markup', fig.align="center"}
+```{r 4.2, results='markup', fig.align="center", echo=F}
 death_boxplot <- ggplot(final_df, aes(x=SDGRegion, y = Deaths.Air.Pollution.per.100k)) + 
                   geom_boxplot(fill="skyblue")
 death_boxplot <- death_boxplot + labs(title="BoxPlot of Deaths per 100,000 from Air Pollution, by SDG Region", x = "SDG Region", y ="Deaths per 100k from Air Polution") + 
@@ -379,7 +379,7 @@ Interesting to note that Australia/New Zealand, Europe, North America seem to ha
 
 Let's take another look but at SubRegions. 
 
-```{r 4.3, results='markup', fig.align="center"}
+```{r 4.3, results='markup', fig.align="center", echo=F}
 sub_boxplot <- ggplot(final_df, aes(x=SubRegion, y = Deaths.Air.Pollution.per.100k)) + 
                   geom_boxplot(fill="azure3")
 sub_boxplot <- sub_boxplot + labs(title="BoxPlot of Deaths per 100k from Air Pollution, by Sub Regions", x = "Sub Regions", y ="Deaths per 100k from Air Polution") + 
@@ -392,7 +392,7 @@ Separating out into an even granular grouping of regions show some trends where 
 
 What does the GDP per capita of these regions look like comparatively? Let's take a look.
 
-```{r 4.4, include=TRUE, fig.align="center"}
+```{r 4.4, include=TRUE, fig.align="center", echo=F}
 gdp_boxplot <- ggplot(final_df, aes(x=SubRegion, y = gdp.per.capita)) + 
                   geom_boxplot(fill="aquamarine3")
 gdp_boxplot <- gdp_boxplot + labs(title="BoxPlot of GDP per Capita, by Sub Regions", x = "Sub Regions", y ="GDP per Capita (USD per person)") + 
@@ -407,7 +407,7 @@ Interesting to observe that the same subregions that have low deaths caused by a
 
 Plotting maps and maps with intensities will be useful for us to visualize our data and the results of our analysis.
 
-```{r 4.5, include=TRUE, fig.align="center"}
+```{r 4.5, include=TRUE, fig.align="center", echo=F}
 # Convert to sf object so we can plot it
 final_df_sf = st_as_sf(final_df)
 
@@ -416,12 +416,12 @@ final_df_sf_regions <- subset(final_df_sf, select = c(SDGRegion, SubRegion))
 final_df_sf_intensities <- subset(final_df_sf, select = c(gdp.per.capita, Deaths.Air.Pollution.per.100k, Population.thousands))
 ```
 
-```{r 4.6, include=TRUE, fig.align="center"}
+```{r 4.6, include=TRUE, fig.align="center", echo=F}
 plot(final_df_sf_regions)
 ```
 : *Figure 11: Global Map of SDGRegions and SubRegions*
 
-```{r 4.7, include=TRUE, fig.align="center"}
+```{r 4.7, include=TRUE, fig.align="center", echo=F}
 plot(final_df_sf_intensities)
 ```
 : *Figure 12: Global Intensity Map of Key Numerical Features, 1990 to 2017*
@@ -431,14 +431,14 @@ Looks like some inverse correlation between gdp.per.capita and deaths.air.pollut
 
 We can also use ggplot2 to have a bit more control over map plotting.
 
-```{r 4.8, include=TRUE, fig.align="center"}
+```{r 4.8, include=TRUE, fig.align="center", echo=F}
 g1 = ggplot() + geom_sf(data = final_df_sf, aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283))
 
 g1
 ```
 : *Figure 13: Global Intensity Map of Deaths due to Air Pollution per 100k People, 1990 to 2017*
 
-```{r 4.9, include=TRUE, fig.align="center"}
+```{r 4.9, include=TRUE, fig.align="center", echo=F}
 g2 = ggplot() + geom_sf(data = final_df_sf[final_df_sf$SDGRegion == 'EASTERNANDSOUTH-EASTERNASIA' & final_df_sf$Year == 2017, ], aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283))
 
 g2
@@ -458,19 +458,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r 200, include=TRUE}
+```{r 200, include=TRUE, echo=F}
 str(air_pollution_df)
 ```
-```{r 300, include=TRUE}
+```{r 300, include=TRUE, echo=F}
 # select what we need
 air_pollution_dfneed <- subset(air_pollution_df, select = -c(Code))
 ```
-```{r 400, include=TRUE}
+```{r 400, include=TRUE, echo=F}
 # make Entity and year factor
 air_pollution_dfneed$Entity = factor(air_pollution_dfneed$Entity)
 air_pollution_dfneed$Year = factor(air_pollution_dfneed$Year)
 ```
-```{r 500, include=TRUE}
+```{r 500, include=TRUE, echo=F}
 # sum up the death of each year
 sum_total <- aggregate(air_pollution_dfneed$Air.pollution..total...deaths.per.100.000. , by=list(Year=air_pollution_dfneed$Year), FUN=sum)
 
@@ -509,7 +509,7 @@ ggplot(total3, aes(x=Year, y=air_pollution_outdoorP)) +
 ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
     geom_bar(stat='identity', position='dodge')
 ```
-```{r 600, include=TRUE}
+```{r 600, include=TRUE, echo=F}
 # The max and min years
 special1.1 <- sum_total[which.max(sum_total$air_pollution_total),]
 special1.2 <- sum_total[which.min(sum_total$air_pollution_total),]
@@ -544,9 +544,6 @@ ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
 ```
 
 
-### 4. How does air pollution increase over time? More specifically, are death rates in recent X amount of years higher than death rates from groups of X years before?
-
-
 # 5. Main Research Question
 
 ## Do lower GDP countries have more deaths per 100k due to air pollution?
@@ -556,7 +553,7 @@ ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
 #### Linear Fit
 Let's first look at the general fit on the overall data.
 
-```{r 5.1, include=TRUE, fig.align="center"}
+```{r 5.1, include=TRUE, fig.align="center", echo=F}
 fit1 <- lm(Deaths.Air.Pollution.per.100k ~ gdp.per.capita, data=final_df_sf)
 
 ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
@@ -571,7 +568,7 @@ From the plot, we observe that there is indeed a negative correlation between de
 
 Even looking at a each individual SDGRegion, their linear fits get better overall but are still not particularly strong with the highest being Australia/New Zealand and Europe at R^2^ of 0.56 and 0.55 respectively.
 
-```{r 5.2, include=TRUE, fig.align="center"}
+```{r 5.2, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   geom_point(size=0.75) +
   geom_smooth(method='lm') +
@@ -583,7 +580,7 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
 : *Fig XX: Linear models for each SDGRegion, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
 
 Let's now look at how time plays a part.
-```{r 5.2.5, include=TRUE, fig.align="center"}
+```{r 5.2.5, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   geom_point(size=0.25) +
   geom_smooth(method='lm') +
@@ -605,7 +602,7 @@ Perhaps we should look at a non-linear fit. From our visuals, we see that every 
 
 Our data seems to be a -log(x) instead of log(x). Let's transform our linear fit to a log fit by wrapping our features into a log() function and fitting back to a linear fit and see what the relationship is.
 
-```{r 5.3, include=TRUE, fig.align="center"}
+```{r 5.3, include=TRUE, fig.align="center", echo=F}
 fit2 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita), data=final_df_sf)
 
 summary(fit2)
@@ -639,7 +636,7 @@ Across the board, the strength of our linear relationship increases dramatically
 
 Let's test a few more regression models adding more features.
 
-```{r 5.4, include=TRUE, fig.align="center"}
+```{r 5.4, include=TRUE, fig.align="center", echo=F}
 fit3 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion, data=final_df_sf)
 fit4 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year, data=final_df_sf)
 fit5 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year, data=final_df_sf)
@@ -657,15 +654,15 @@ R^2^ values for adding more features are `r summary(fit3)$r.squared`, `r summary
 ```{r Q5.4.1, include=FALSE}
 knitr::opts_chunk$set(warning = F, results = "show", message = F)
 ```
-```{r Q5.4.2, include=TRUE}
+```{r Q5.4.2, include=TRUE, echo=F}
 xkablevif(fit3, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year')
 ```
 
-```{r Q5.4.3, include=TRUE}
+```{r Q5.4.3, include=TRUE, echo=F}
 xkablevif(fit4, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year.')
 ```
 
-```{r Q5.4.4, include=TRUE}
+```{r Q5.4.4, include=TRUE, echo=F}
 xkablevif(fit5, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year.')
 ```
 
@@ -700,7 +697,7 @@ H~1~: At least one of $\mu$~deaths_lowest_gdp~, $\mu$~deaths_low_gdp~, $\mu$~dea
 
 Use $\alpha$ of 0.05.
 
-```{r Q5.9, include=TRUE}
+```{r Q5.9, include=TRUE, echo=F}
 # divide df$am.spent 
 final_df_sf$qnt <- cut(final_df_sf$gdp.per.capita , breaks=quantile(final_df_sf$gdp.per.capita),
                                     labels=1:4, include.lowest=TRUE)
@@ -715,7 +712,7 @@ deaths_aovsummary
 
 p = deaths_aovsummary[[1]][["Pr(>F)"]][[1]]
 ```
-The p-value~test1~ is `r p`, which is lower than $\alpha$~0.05~. Therefore, we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~ = $\mu$~deaths_medium_gdp~ = $\mu$~deaths_high_gdp~. This means that there is statistically significant that at least one of the means of deaths in low, medium, and high GDP per capita are not the same. 
+The p-value~test1~ is `r format(p, scientific=T)`, which is lower than $\alpha$~0.05~. Therefore, we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~ = $\mu$~deaths_medium_gdp~ = $\mu$~deaths_high_gdp~. This means that there is statistically significant that at least one of the means of deaths in low, medium, and high GDP per capita are not the same. 
 
 I will conduct 4 2-sample t-tests:
 
@@ -736,12 +733,12 @@ I will use a two sample t-test for each and use $\alpha$ of 0.05.
 
 **Test 1**:
 
-```{r Q5.9.1, include=TRUE}
+```{r Q5.9.1, include=TRUE, echo=F}
 ttest1 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,2), data=final_df_sf, conf=0.95)
 ttest1
 ```
 
-p-value~test1~: `r format(ttest1$p.value, scientific=F)`
+p-value~test1~: `r format(ttest1$p.value, scientific=T)`
 
 p-value~test1~ < $\alpha$~0.05~ = `r ttest1$p.value < 0.05`
 
@@ -749,12 +746,12 @@ Conclusion of test1: p-value~test1~ is less than $\alpha$~0.05~, therefore we re
 
 **Test 2**:
 
-```{r Q5.9.2, include=TRUE}
+```{r Q5.9.2, include=TRUE, echo=F}
 ttest2 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(2,3), data=final_df_sf, conf=0.95)
 ttest2
 ```
 
-p-value~test2~: `r format(ttest2$p.value, scientific=F)`
+p-value~test2~: `r format(ttest2$p.value, scientific=T)`
 
 p-value~test2~ < $\alpha$~0.05~ = `r ttest2$p.value < 0.05`
 
@@ -762,12 +759,12 @@ Conclusion of test2: p-value~test2~ is less than $\alpha$~0.05~, therefore we re
 
 **Test 3**:
 
-```{r Q5.9.3, include=TRUE}
+```{r Q5.9.3, include=TRUE, echo=F}
 ttest3 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(3,4), data=final_df_sf, conf=0.95)
 ttest3
 ```
 
-p-value~test3~: `r format(ttest3$p.value, scientific=F)`
+p-value~test3~: `r format(ttest3$p.value, scientific=T)`
 
 p-value~test3~ < $\alpha$~0.05~ = `r ttest3$p.value < 0.05`
 
@@ -775,12 +772,12 @@ Conclusion of test3: p-value~test3~ is less than $\alpha$~0.05~, therefore we re
 
 **Test 3**:
 
-```{r Q5.9.4, include=TRUE}
+```{r Q5.9.4, include=TRUE, echo=F}
 ttest4 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,4), data=final_df_sf, conf=0.95)
 ttest4
 ```
 
-p-value~test4~: `r format(ttest4$p.value, scientific=F)`
+p-value~test4~: `r format(ttest4$p.value, scientific=T)`
 
 p-value~test4~ < $\alpha$~0.05~ = `r ttest4$p.value < 0.05`
 
@@ -793,7 +790,6 @@ From all of our tests, we can confirm that the means of deaths caused by air pol
 $$
 Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
-: *Equation 2*
 
 # 7. Bibliography
 
