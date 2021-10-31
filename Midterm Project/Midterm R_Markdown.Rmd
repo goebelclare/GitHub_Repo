@@ -770,7 +770,7 @@ p-value~test3~ < $\alpha$~0.05~ = `r ttest3$p.value < 0.05`
 
 Conclusion of test3: p-value~test3~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_medium_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
 
-**Test 3**:
+**Test 4**:
 
 ```{r Q5.9.4, include=TRUE, echo=F}
 ttest4 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,4), data=final_df_sf, conf=0.95)
