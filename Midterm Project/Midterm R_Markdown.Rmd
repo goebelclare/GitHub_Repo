@@ -476,10 +476,9 @@ corrplot(pop_poll_cor)
 ```{r SQ2, results='markup'}
 library("data.table")
 library(scales)
-library(scales)
 
 #Aggregate data by total deaths by country
-deathsbyyear_c <- group_by(.data = final_df, Country.x)
+deathsbyyear_c <- group_by(.data = final_df,SDGRegion, Country.x)
 totdeath_c <- summarize(.data = deathsbyyear_c, total = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
 str(totdeath_c)
 
@@ -489,12 +488,12 @@ topdeaths_c <- topdeaths_c[ , tail(.SD, 10)]
 str(topdeaths_c)
 
 air1 <- ggplot(data = topdeaths_c,
-             mapping = aes(x = total, y = reorder(Country.x , total), color = "darkorange3")) +
+             mapping = aes(x = total, y = reorder(Country.x , total, fill = SDGRegion), color = SDGRegion)) +
       geom_segment(data = topdeaths_c,
                mapping = aes(x = 0, xend = total, y = reorder(Country.x, total), yend = Country.x)) +
       geom_point() +
-          scale_x_continuous(limits = c(0, 8000), breaks = seq(0,8000,1000))
-         # scale_color_manual(values = c("darkorange3", "firebrick1","lightpink1","green3","dodgerblue4","gold1")) 
+      scale_x_continuous(label = comma, limits = c(0, 8000), breaks = seq(0,8000,1000)) +
+      scale_color_manual(values = c("firebrick1","lightpink1","green4")) 
 
 air1 <- air1 + labs(title = "10 Countries with the Highest Deaths per 100,000",
                             subtitle = "Deaths due to Air Pollution, 1990 - 2017", 
@@ -510,7 +509,8 @@ air1 <- air1 + labs(title = "10 Countries with the Highest Deaths per 100,000",
         axis.line.x = element_line(color = "black"),
         axis.ticks = element_line(color = "black"),
         axis.text = element_text(size = 10),
-        legend.position = "none",
+        legend.text = element_text(size=5),
+       legend.position = "bottom",
         plot.subtitle = element_text(size = 8),
         plot.title = element_text(size = 10, margin = margin(b = 10)))
 
@@ -536,12 +536,12 @@ lowdeaths_c <- lowdeaths_c[ , head(.SD, 10)]
 str(lowdeaths_c)
 
 air2 <- ggplot(data = lowdeaths_c,
-             mapping = aes(x = total, y = reorder(Country.x , -total, color = "green4"))) +
+             mapping = aes(x = total, y = reorder(Country.x , -total, fill = SDGRegion), color = SDGRegion)) +
       geom_segment(data = lowdeaths_c,
                mapping = aes(x = 0, xend = total, y = reorder(Country.x, -total), yend = Country.x)) +
       geom_point() +
-          scale_x_continuous(limits = c(0, 8000), breaks = seq(0,8000,1000)) 
-        #  scale_color_manual(values = c("darkorange3", "firebrick1","lightpink1","green3","dodgerblue4","gold1", "mediumorchid1", "azure4","sienna3")) 
+      scale_x_continuous(label = comma, limits = c(0, 8000), breaks = seq(0,8000,1000)) +
+      scale_color_manual(values = c("darkorange3","azure4", "dodgerblue4","gold1", "cyan1","green4")) 
 
 air2 <- air2 + labs(title = "Countries with the Lowest Deaths per 100,000",
                             subtitle = "Deaths due to Air Pollution, 1990 - 2017", 
@@ -557,7 +557,8 @@ air2 <- air2 + labs(title = "Countries with the Lowest Deaths per 100,000",
         axis.line.x = element_line(color = "black"),
         axis.ticks = element_line(color = "black"),
         axis.text = element_text(size = 10),
-        legend.position = "none",
+        legend.position = "bottom",
+        legend.text = element_text(size=5),
         plot.subtitle = element_text(size = 8),
         plot.title = element_text(size = 10, margin = margin(b = 10)))
 
@@ -605,7 +606,7 @@ deaths_line <- deaths_line + labs(title = "Total Deaths per 100,000 by Air Pollu
                     panel.grid.major.y = element_blank(),
                     axis.line.x = element_line(color = "black"),
                     axis.ticks = element_line(color = "black"),
-                    axis.text = element_text(size = 6),
+                    axis.text = element_text(size = 5),
                     #legend.position = "none",
                     legend.text = element_text(size=5),
                     plot.subtitle = element_text(size = 8),
@@ -648,7 +649,7 @@ deaths_line <- deaths_line + labs(title = "Deaths per 1000,000 by Air Pollution"
                     panel.grid.major.y = element_blank(),
                     axis.line.x = element_line(color = "black"),
                     axis.ticks = element_line(color = "black"),
-                    axis.text = element_text(size = 10),
+                    axis.text = element_text(size = 6),
                     legend.position = "none",
                     plot.subtitle = element_text(size = 8),
                     plot.title = element_text(size = 10, margin = margin(b = 10)))
@@ -704,17 +705,46 @@ total3 <- merge(total1,total2, by="Year")
 library(ggplot2)
 # total
 ggplot(total3, aes(x=Year, y=air_pollution_total)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') 
 
 # indoor
 ggplot(total3, aes(x=Year, y=air_pollution_indoor)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') +
+     theme_minimal() +
+  theme(axis.title = element_text(size = 5, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.text = element_text(size = 6),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"))
+            
 # outdoor particulate
 ggplot(total3, aes(x=Year, y=air_pollution_outdoorP)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') +
+   theme_minimal() +
+              theme(axis.title = element_text(size = 5, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    axis.text = element_text(size = 6),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"))
 # outdoor ozone 
 ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') +
+   theme_minimal() +
+              theme(axis.title = element_text(size = 5, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    axis.text = element_text(size = 6),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"))
+   
 ```
 ```{r 600, include=TRUE, echo=F}
 # The max and min years
@@ -738,16 +768,52 @@ library("ggplot2")
 
 # Year of max and min of total pollution
 ggplot(special1, aes(x=Year, y=air_pollution_total)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') +
+   theme_minimal() +
+              theme(axis.title = element_text(size = 8, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black")) 
+   
 # Year of max and min of indoor pollution
 ggplot(special2, aes(x=Year, y=air_pollution_indoor)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') +
+     theme_minimal() +
+              theme(axis.title = element_text(size = 8, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"))
+
 # Year of max and min of ourdoor particulate pollution
 ggplot(special3, aes(x=Year, y=air_pollution_outdoorP)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') +
+     theme_minimal() +
+              theme(axis.title = element_text(size = 8, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"))
+
 # Year of max and min of outdoor ozone pollution
 ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
-    geom_bar(stat='identity', position='dodge')
+    geom_bar(stat='identity', position='dodge') +
+   theme_minimal() +
+              theme(axis.title = element_text(size = 8, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"))
+   
 ```
 
 
