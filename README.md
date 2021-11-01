@@ -36,7 +36,7 @@
 [Deaths Due to Air Pollution of Countries from 1990 - 2017, Kaggle](https://www.kaggle.com/akshat0giri/death-due-to-air-pollution-19902017)   
 [GDP Annual Growth of Countries from 1960 - 2020, Kaggle via WorldBank](https://www.kaggle.com/zackerym/gdp-annual-growth-for-each-country-1960-2020)      
 [United Nations Population and Region Data, United Nations](https://population.un.org/wpp/Download/Standard/Population/)                        
-[United Nations ISO-alpha3 code, United Nations](https://unstats.un.org/unsd/methodology/m49/)                                       |
+[United Nations ISO-alpha3 code, United Nations](https://unstats.un.org/unsd/methodology/m49/)                                       
 [spData for Map Geometries, spData for Mapping](https://nowosad.github.io/spData/)  
 
 ### Presentation
