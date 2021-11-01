@@ -30,7 +30,7 @@
 
 ### Topic Proposal
 * [Topic Proposal Google Doc](https://docs.google.com/document/d/1GICM9eaFOKcWz0VVfAzKjpEHWHDFOBg0cgpfGuXar6w/edit)
-* [Project Ouline Google Doc](https://docs.google.com/document/d/1ZTAHsWutSpQvK_8CvynxdKQmYvzuSvIAg25adG7RAXQ/edit?usp=sharing)
+* [Project Outline Google Doc](https://docs.google.com/document/d/1ZTAHsWutSpQvK_8CvynxdKQmYvzuSvIAg25adG7RAXQ/edit?usp=sharing)
 
 ### Datasets
 
