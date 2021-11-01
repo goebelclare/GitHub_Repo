@@ -33,6 +33,11 @@
 * [Project Outline Google Doc](https://docs.google.com/document/d/1ZTAHsWutSpQvK_8CvynxdKQmYvzuSvIAg25adG7RAXQ/edit?usp=sharing)
 
 ### Datasets
+[Deaths Due to Air Pollution of Countries from 1990 - 2017, Kaggle](https://www.kaggle.com/akshat0giri/death-due-to-air-pollution-19902017)   
+[GDP Annual Growth of Countries from 1960 - 2020, Kaggle via WorldBank](https://www.kaggle.com/zackerym/gdp-annual-growth-for-each-country-1960-2020)      
+[United Nations Population and Region Data, United Nations](https://population.un.org/wpp/Download/Standard/Population/)                        
+[United Nations ISO-alpha3 code, United Nations](https://unstats.un.org/unsd/methodology/m49/)                                       |
+[spData for Map Geometries, spData for Mapping](https://nowosad.github.io/spData/)  
 
 ### Presentation
 [Presentation Google Slides](https://docs.google.com/presentation/d/17Z6-zhZQSw2Nahtbr9x-CTLw1q8mdJuAqMjUCUDEgTE/edit?usp=sharing)
