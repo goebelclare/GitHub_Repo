@@ -636,7 +636,7 @@ deaths_line <- ggplot() +
               scale_y_continuous(label = comma, limits = c(0, 40000), breaks = seq(0,40000,10000)) 
              # scale_x_discrete(limits = c(1990, 2017), breaks = seq(1990,2017,2)) 
 
-deaths_line <- deaths_line + labs(title = "Deaths per 1000,000 by Air Pollution",
+deaths_line <- deaths_line + labs(title = "Deaths per 1000,000 due to Air Pollution",
                                             subtitle = "1990 - 2017", 
                                             caption = "Data Source: Kaggle",
                                             y = "Deaths due to Air Pollution",
@@ -705,7 +705,16 @@ total3 <- merge(total1,total2, by="Year")
 library(ggplot2)
 # total
 ggplot(total3, aes(x=Year, y=air_pollution_total)) +
-    geom_bar(stat='identity', position='dodge') 
+    geom_bar(stat='identity', position='dodge') +
+      theme_minimal() +
+              theme(axis.title = element_text(size = 8, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.text = element_text(size = 6),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"))
 
 # indoor
 ggplot(total3, aes(x=Year, y=air_pollution_indoor)) +
