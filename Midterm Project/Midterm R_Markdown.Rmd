@@ -520,13 +520,13 @@ air1 <- air1 + theme(plot.title = element_text(color = "black", size = 12, face 
 air1
 
 #Save the graph
-b1 <- "/images/b1.jpg"
-ggsave(plot = air1,
-       file = b1,
-       dpi = 300,
-       units = c("in"),
-       width = 5,
-       height = 4)
+#b1 <- "/images/b1.jpg"
+#ggsave(plot = air1,
+#       file = b1,
+#       dpi = 300,
+#       units = c("in"),
+#       width = 5,
+#       height = 4)
 
 
 ##Top 50 with lowest
@@ -567,13 +567,13 @@ air2 <- air2 + theme(plot.title = element_text(color = "black", size = 12, face 
 air2
 
 #Save the graph
-b2 <- "images/b2.jpg"
-ggsave(plot = air2,
-       file = b2,
-       dpi = 300,
-       units = c("in"),
-       width = 5,
-       height = 4)
+#b2 <- "images/b2.jpg"
+#ggsave(plot = air2,
+#       file = b2,
+#       dpi = 300,
+#       units = c("in"),
+#       width = 5,
+#       height = 4)
 ```
 
 
@@ -918,20 +918,26 @@ p = deaths_aovsummary[[1]][["Pr(>F)"]][[1]]
 ```
 The p-value~test1~ is `r format(p, scientific=T)`, which is lower than $\alpha$~0.05~. Therefore, we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~ = $\mu$~deaths_medium_gdp~ = $\mu$~deaths_high_gdp~. This means that there is statistically significant that at least one of the means of deaths in low, medium, and high GDP per capita are not the same. 
 
-I will conduct 4 2-sample t-tests:
+I will conduct 6 2-sample t-tests:
 
 * Lowest GDP per capita's deaths does not equal Low GDP per capita's deaths
     + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
     + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
 * Low GDP per capita's deaths does not equal Medium GDP per capita's deaths
-    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
-    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
+    + H~0~: $\mu$~deaths_low_gdp~ = $\mu$~deaths_medium_gdp~
+    + H~1~: $\mu$~deaths_low_gdp~ != $\mu$~deaths_medium_gdp~
 * Medium GDP per capita's deaths does not equal High GDP per capita's deaths
-    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
-    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
+    + H~0~: $\mu$~deaths_medium_gdp~ = $\mu$~deaths_high_gdp~
+    + H~1~: $\mu$~deaths_medium_gdp~ != $\mu$~deaths_high_gdp~
 * Lowest GDP per capita's deaths does not equal High GDP per capita's deaths
-    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~
-    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_low_gdp~
+    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_high_gdp~
+    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_high_gdp~
+* Lowest GDP per capita's deaths does not equal Medium GDP per capita's deaths
+    + H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_medium_gdp~
+    + H~1~: $\mu$~deaths_lowest_gdp~ != $\mu$~deaths_medium_gdp~
+* Low GDP per capita's deaths does not equal Highest GDP per capita's deaths
+    + H~0~: $\mu$~deaths_low_gdp~ = $\mu$~deaths_high_gdp~
+    + H~1~: $\mu$~deaths_low_gdp~ != $\mu$~deaths_high_gdp~
     
 I will use a two sample t-test for each and use $\alpha$ of 0.05.
 
@@ -986,6 +992,32 @@ p-value~test4~: `r format(ttest4$p.value, scientific=T)`
 p-value~test4~ < $\alpha$~0.05~ = `r ttest4$p.value < 0.05`
 
 Conclusion of test4: p-value~test4~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
+
+**Test 5**:
+
+```{r Q5.9.5, include=TRUE, echo=F}
+ttest5 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,3), data=final_df_sf, conf=0.95)
+ttest5
+```
+
+p-value~test5~: `r format(ttest5$p.value, scientific=T)`
+
+p-value~test5~ < $\alpha$~0.05~ = `r ttest5$p.value < 0.05`
+
+Conclusion of test5: p-value~test5~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ is equal to $\mu$~deaths_medium_gdp~ and accept our alternative hypothesis.
+
+**Test 6**:
+
+```{r Q5.9.6, include=TRUE, echo=F}
+ttest6 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(2,4), data=final_df_sf, conf=0.95)
+ttest6
+```
+
+p-value~test6~: `r format(ttest6$p.value, scientific=T)`
+
+p-value~test6~ < $\alpha$~0.05~ = `r ttest6$p.value < 0.05`
+
+Conclusion of test6: p-value~test6~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_low_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
 
 # 6. Conclusion
 
