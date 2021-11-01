@@ -447,7 +447,7 @@ g2
 
 ## SMART Questions
 
-### 1. Is there a relationship between population size and pollution?
+### 1. Is there a relationship between population size and Deaths per 100,000 due to air pollution?
 
 Below, we would like to measure the relationship between Population size (in thousands) and Deaths per 100,000 due to air pollution. Since these variables are numerical, we have to confirm the normal distribution of both variables, and from the results below, we see that there is no correlation between a country's population size and their deaths due to air pollution. we do observe a negative correlation between Deaths due to air pollution and GDP per Capita.
 
@@ -642,8 +642,6 @@ deaths_line <- deaths_line + labs(title = "Deaths per 1000,000 by Air Pollution"
             deaths_line
 
 ```
-
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
