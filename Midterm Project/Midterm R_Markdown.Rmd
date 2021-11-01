@@ -493,7 +493,7 @@ air1 <- ggplot(data = topdeaths_c,
       geom_segment(data = topdeaths_c,
                mapping = aes(x = 0, xend = total, y = reorder(Country.x, total), yend = Country.x)) +
       geom_point() +
-          scale_x_continuous(limits = c(0, 7000), breaks = seq(0,7000,1000))
+          scale_x_continuous(limits = c(0, 8000), breaks = seq(0,8000,1000))
          # scale_color_manual(values = c("darkorange3", "firebrick1","lightpink1","green3","dodgerblue4","gold1")) 
 
 air1 <- air1 + labs(title = "10 Countries with the Highest Deaths per 100,000",
@@ -519,6 +519,15 @@ air1 <- air1 + theme(plot.title = element_text(color = "black", size = 12, face 
                            plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
 air1
 
+#Save the graph
+b1 <- "/Users/b/Desktop/b1.jpg"
+ggsave(plot = air1,
+       file = b1,
+       dpi = 300,
+       units = c("in"),
+       width = 5,
+       height = 4)
+
 
 ##Top 50 with lowest
 lowdeaths_c <- totdeath_c[order(totdeath_c$total, decreasing = FALSE), ]  # Top N lowest values by group
@@ -531,7 +540,7 @@ air2 <- ggplot(data = lowdeaths_c,
       geom_segment(data = lowdeaths_c,
                mapping = aes(x = 0, xend = total, y = reorder(Country.x, -total), yend = Country.x)) +
       geom_point() +
-          scale_x_continuous(limits = c(0, 7000), breaks = seq(0,7000,1000)) 
+          scale_x_continuous(limits = c(0, 8000), breaks = seq(0,8000,1000)) 
         #  scale_color_manual(values = c("darkorange3", "firebrick1","lightpink1","green3","dodgerblue4","gold1", "mediumorchid1", "azure4","sienna3")) 
 
 air2 <- air2 + labs(title = "Countries with the Lowest Deaths per 100,000",
@@ -557,7 +566,14 @@ air2 <- air2 + theme(plot.title = element_text(color = "black", size = 12, face 
                            plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
 air2
 
-
+#Save the graph
+b2 <- "/Users/b/Desktop/b2.jpg"
+ggsave(plot = air2,
+       file = b2,
+       dpi = 300,
+       units = c("in"),
+       width = 5,
+       height = 4)
 ```
 
 
