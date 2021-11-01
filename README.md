@@ -25,7 +25,7 @@
 - [X] Find Datasets - Internal Team Deadline - Oct 15th
 - [X] Topic Proposal - Internal Team Deadline - Oct 15th
 - [X] Topic Proposal - Class Deadline - Oct 29th
-- [ ] Presentation and Technical Analysis (Code) - Class Deadline - Nov 2nd
+- [X] Presentation and Technical Analysis (Code) - Class Deadline - Nov 2nd
 - [ ] RMarkdown and HTML Final Report - Class Deadline - Nov 9th
 
 ### Topic Proposal
@@ -38,6 +38,7 @@
 [Presentation](https://docs.google.com/presentation/d/17Z6-zhZQSw2Nahtbr9x-CTLw1q8mdJuAqMjUCUDEgTE/edit?usp=sharing)
 
 ### Report
+
 ### Additional Resources
 * [RMD Formats Package](https://bookdown.org/yihui/rmarkdown/rmdformats.html)
 * [RMD Formats](https://github.com/juba/rmdformats)
