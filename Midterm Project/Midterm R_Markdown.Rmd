@@ -582,20 +582,18 @@ ggsave(plot = air2,
 ```{r SQ3, results='markup'}
 library(scales)
 #Aggregate data by total deaths by year and region 
-deathsbyyear_reg <- group_by(.data = final_df,Year, SDGRegion)
+deathsbyyear_reg <- group_by(.data = final_df, SDGRegion)
 totdeath_reg <- summarize(.data = deathsbyyear_reg, total = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
 str(totdeath_reg)
 
 deaths_line <- ggplot() +
-               geom_line(data = totdeath_reg, mapping = aes(x = Year, y = total, group = SDGRegion, color = SDGRegion), size = 1.2) +
-              geom_point(data = totdeath_reg, mapping = aes(x = Year, y = total, group = SDGRegion, color = SDGRegion), size = 1.2) +
-              scale_y_continuous(label = comma, limits = c(0, 15000), breaks = seq(0,15000,1500))
-              # scale_x_discrete(limits = c(1990, 2017), breaks = seq(1990,2017,2)) 
-deaths_line <- deaths_line + labs(title = "Deaths per 100,000 by Air Pollution, by Region",
+               geom_col(data = totdeath_reg, mapping = aes(x = total, y = reorder(SDGRegion, total)), fill = "dodgerblue4", size = 1.2) +
+              scale_x_continuous(label = comma, limits = c(0, 200000), breaks = seq(0,200000,40000))
+deaths_line <- deaths_line + labs(title = "Total Deaths per 100,000 by Air Pollution, by Region",
                                             subtitle = "1990 - 2017", 
                                             caption = "Data Source: Kaggle",
-                                            y = "Deaths due to Air Pollution",
-                                            x = "") +
+                                            y = "",
+                                            x = "Deaths due to Air Pollution") +
               theme_minimal() +
               theme(axis.title = element_text(size = 8, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -604,7 +602,7 @@ deaths_line <- deaths_line + labs(title = "Deaths per 100,000 by Air Pollution, 
                     panel.grid.major.y = element_blank(),
                     axis.line.x = element_line(color = "black"),
                     axis.ticks = element_line(color = "black"),
-                    axis.text = element_text(size = 10),
+                    axis.text = element_text(size = 6),
                     #legend.position = "none",
                     legend.text = element_text(size=5),
                     plot.subtitle = element_text(size = 8),
