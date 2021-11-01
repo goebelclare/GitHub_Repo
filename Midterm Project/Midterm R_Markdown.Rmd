@@ -449,9 +449,201 @@ g2
 
 ### 1. Is there a relationship between population size and pollution?
 
-### 2. Which countries have the highest and lowest air pollution? How is this related to the region?
+Below, we would like to measure the relationship between Population size (in thousands) and Deaths per 100,000 due to air pollution. Since these variables are numerical, we have to confirm the normal distribution of both variables, and from the results below, we see that there is no correlation between a country's population size and their deaths due to air pollution. we do observe a negative correlation between Deaths due to air pollution and GDP per Capita.
 
-### 3. Which years have the lowest and highest pollution?
+
+```{r SQ1, results='markup'}
+
+str(final_df)
+
+#check normality
+qqnorm(final_df$Population.thousands)
+qqnorm(final_df$Deaths.Air.Pollution.per.100k)
+
+cor(final_df$Population.thousands, final_df$Deaths.Air.Pollution.per.100k, method = c("spearman"))
+
+#correlation matrix
+pop_poll_cor<- cor(select(final_df, Deaths.Air.Pollution.per.100k, Population.thousands, gdp.per.capita,))
+pop_poll_cor
+xkabledply(pop_poll_cor)
+
+#plot
+loadPkg("corrplot")
+corrplot(pop_poll_cor)
+```
+
+### 2. Which countries had the highest and lowest deaths due to air pollution from 1990 - 2017? How is this related to the region?
+```{r SQ2, results='markup'}
+library("data.table")
+library(scales)
+library(scales)
+
+#Aggregate data by total deaths by country
+deathsbyyear_c <- group_by(.data = final_df, Country.x)
+totdeath_c <- summarize(.data = deathsbyyear_c, total = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
+str(totdeath_c)
+
+topdeaths_c <- totdeath_c[order(totdeath_c$total, decreasing = TRUE), ]  # Top N highest values by group
+topdeaths_c <- data.table(topdeaths_c, key = "total")
+topdeaths_c <- topdeaths_c[ , tail(.SD, 10)]
+str(topdeaths_c)
+
+air1 <- ggplot(data = topdeaths_c,
+             mapping = aes(x = total, y = reorder(Country.x , total), color = "darkorange3")) +
+      geom_segment(data = topdeaths_c,
+               mapping = aes(x = 0, xend = total, y = reorder(Country.x, total), yend = Country.x)) +
+      geom_point() +
+          scale_x_continuous(limits = c(0, 7000), breaks = seq(0,7000,1000))
+         # scale_color_manual(values = c("darkorange3", "firebrick1","lightpink1","green3","dodgerblue4","gold1")) 
+
+air1 <- air1 + labs(title = "10 Countries with the Highest Deaths per 100,000",
+                            subtitle = "Deaths due to Air Pollution, 1990 - 2017", 
+                            caption = "Data Source: Kaggle",
+                            x = "Deaths per 100,000",
+                            y = "") +
+         theme_minimal() +
+        theme(axis.title = element_text(size = 8, face = "bold"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.line.x = element_line(color = "black"),
+        axis.ticks = element_line(color = "black"),
+        axis.text = element_text(size = 10),
+        legend.position = "none",
+        plot.subtitle = element_text(size = 8),
+        plot.title = element_text(size = 10, margin = margin(b = 10)))
+
+air1 <- air1 + theme(plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0),
+                           plot.subtitle = element_text(color = "black", size = 10, hjust = 0 ),
+                           plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
+air1
+
+
+##Top 50 with lowest
+lowdeaths_c <- totdeath_c[order(totdeath_c$total, decreasing = FALSE), ]  # Top N lowest values by group
+lowdeaths_c <- data.table(lowdeaths_c, key = "total")
+lowdeaths_c <- lowdeaths_c[ , head(.SD, 10)]
+str(lowdeaths_c)
+
+air2 <- ggplot(data = lowdeaths_c,
+             mapping = aes(x = total, y = reorder(Country.x , -total, color = "green4"))) +
+      geom_segment(data = lowdeaths_c,
+               mapping = aes(x = 0, xend = total, y = reorder(Country.x, -total), yend = Country.x)) +
+      geom_point() +
+          scale_x_continuous(limits = c(0, 7000), breaks = seq(0,7000,1000)) 
+        #  scale_color_manual(values = c("darkorange3", "firebrick1","lightpink1","green3","dodgerblue4","gold1", "mediumorchid1", "azure4","sienna3")) 
+
+air2 <- air2 + labs(title = "Countries with the Lowest Deaths per 100,000",
+                            subtitle = "Deaths due to Air Pollution, 1990 - 2017", 
+                            caption = "Data Source: Kaggle",
+                            x = "dDeaths per 100,000",
+                            y = "") +
+         theme_minimal() +
+        theme(axis.title = element_text(size = 8, face = "bold"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.line.x = element_line(color = "black"),
+        axis.ticks = element_line(color = "black"),
+        axis.text = element_text(size = 10),
+        legend.position = "none",
+        plot.subtitle = element_text(size = 8),
+        plot.title = element_text(size = 10, margin = margin(b = 10)))
+
+air2 <- air2 + theme(plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0),
+                           plot.subtitle = element_text(color = "black", size = 10, hjust = 0 ),
+                           plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
+air2
+
+
+```
+
+
+### 3. Which regions have the lowest and highest deaths due to air pollution?
+
+```{r SQ3, results='markup'}
+library(scales)
+#Aggregate data by total deaths by year and region 
+deathsbyyear_reg <- group_by(.data = final_df,Year, SDGRegion)
+totdeath_reg <- summarize(.data = deathsbyyear_reg, total = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
+str(totdeath_reg)
+
+deaths_line <- ggplot() +
+               geom_line(data = totdeath_reg, mapping = aes(x = Year, y = total, group = SDGRegion, color = SDGRegion), size = 1.2) +
+              geom_point(data = totdeath_reg, mapping = aes(x = Year, y = total, group = SDGRegion, color = SDGRegion), size = 1.2) +
+              scale_y_continuous(label = comma, limits = c(0, 15000), breaks = seq(0,15000,1500))
+              # scale_x_discrete(limits = c(1990, 2017), breaks = seq(1990,2017,2)) 
+deaths_line <- deaths_line + labs(title = "Deaths per 100,000 by Air Pollution, by Region",
+                                            subtitle = "1990 - 2017", 
+                                            caption = "Data Source: Kaggle",
+                                            y = "Deaths due to Air Pollution",
+                                            x = "") +
+              theme_minimal() +
+              theme(axis.title = element_text(size = 8, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"),
+                    axis.text = element_text(size = 10),
+                    #legend.position = "none",
+                    legend.text = element_text(size=5),
+                    plot.subtitle = element_text(size = 8),
+                    plot.title = element_text(size = 10, margin = margin(b = 10)))
+            
+            deaths_line <- deaths_line + theme(plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0),
+                                         plot.subtitle = element_text(color = "black", size = 10, hjust = 0 ),
+                                         plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
+            deaths_line
+
+```
+
+
+### 4. How does deaths due to air pollution increase over time? More specifically, are death rates in recent X amount of years higher than death rates from groups of X years before?
+
+```{r sq4, results='markup'}
+library(scales)
+#Aggregate data by total deaths by year
+deathsbyyear <- group_by(.data = final_df,Year)
+totdeath <- summarize(.data = deathsbyyear, tot_deaths = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
+str(totdeath)
+
+deaths_line <- ggplot() +
+               geom_line(data = totdeath, mapping = aes(x = Year, y = tot_deaths, group = 1), size = 1.2) +
+              geom_point(data = totdeath, mapping = aes(x = Year, y = tot_deaths, group = 1), size = 1.2) +
+              scale_color_manual(values = c("darkmagenta")) +
+              scale_y_continuous(label = comma, limits = c(0, 40000), breaks = seq(0,40000,10000)) 
+             # scale_x_discrete(limits = c(1990, 2017), breaks = seq(1990,2017,2)) 
+
+deaths_line <- deaths_line + labs(title = "Deaths per 1000,000 by Air Pollution",
+                                            subtitle = "1990 - 2017", 
+                                            caption = "Data Source: Kaggle",
+                                            y = "Deaths due to Air Pollution",
+                                            x = "") +
+              theme_minimal() +
+              theme(axis.title = element_text(size = 8, face = "bold"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.x = element_line(color = "black"),
+                    axis.ticks = element_line(color = "black"),
+                    axis.text = element_text(size = 10),
+                    legend.position = "none",
+                    plot.subtitle = element_text(size = 8),
+                    plot.title = element_text(size = 10, margin = margin(b = 10)))
+            
+            deaths_line <- deaths_line + theme(plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0),
+                                         plot.subtitle = element_text(color = "black", size = 10, hjust = 0 ),
+                                         plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
+            deaths_line
+
+```
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
