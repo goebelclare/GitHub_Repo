@@ -35,7 +35,7 @@
 ### Datasets
 
 ### Presentation
-[Presentation](https://docs.google.com/presentation/d/17Z6-zhZQSw2Nahtbr9x-CTLw1q8mdJuAqMjUCUDEgTE/edit?usp=sharing)
+[Presentation Google Slides](https://docs.google.com/presentation/d/17Z6-zhZQSw2Nahtbr9x-CTLw1q8mdJuAqMjUCUDEgTE/edit?usp=sharing)
 
 ### Report
 
