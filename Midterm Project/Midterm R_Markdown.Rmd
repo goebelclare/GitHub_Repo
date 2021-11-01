@@ -546,7 +546,7 @@ air2 <- ggplot(data = lowdeaths_c,
 air2 <- air2 + labs(title = "Countries with the Lowest Deaths per 100,000",
                             subtitle = "Deaths due to Air Pollution, 1990 - 2017", 
                             caption = "Data Source: Kaggle",
-                            x = "dDeaths per 100,000",
+                            x = "Deaths per 100,000",
                             y = "") +
          theme_minimal() +
         theme(axis.title = element_text(size = 8, face = "bold"),
@@ -582,13 +582,16 @@ air2
 ```{r SQ3, results='markup'}
 library(scales)
 #Aggregate data by total deaths by year and region 
-deathsbyyear_reg <- group_by(.data = final_df, SDGRegion)
+deathsbyyear_reg <- group_by(.data = final_df,SDGRegion, Year)
 totdeath_reg <- summarize(.data = deathsbyyear_reg, total = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
 str(totdeath_reg)
 
-deaths_line <- ggplot() +
-               geom_col(data = totdeath_reg, mapping = aes(x = total, y = reorder(SDGRegion, total)), fill = "dodgerblue4", size = 1.2) +
-              scale_x_continuous(label = comma, limits = c(0, 200000), breaks = seq(0,200000,40000))
+deaths_line <- ggplot(data = totdeath_reg[which(totdeath_reg$Year ==1990 | totdeath_reg$Year ==2017),], mapping = aes(x = total, y = SDGRegion, fill = Year), size = 1.2) +
+              geom_bar(position="dodge", stat="identity") +
+              scale_x_continuous(label = comma, limits = c(0, 7500), breaks = seq(0,7500,1000)) +
+              scale_fill_brewer(palette = "Paired") 
+
+
 deaths_line <- deaths_line + labs(title = "Total Deaths per 100,000 by Air Pollution, by Region",
                                             subtitle = "1990 - 2017", 
                                             caption = "Data Source: Kaggle",
