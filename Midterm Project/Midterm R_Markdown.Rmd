@@ -520,7 +520,7 @@ air1 <- air1 + theme(plot.title = element_text(color = "black", size = 12, face 
 air1
 
 #Save the graph
-b1 <- "/Users/b/Desktop/b1.jpg"
+b1 <- "/images/b1.jpg"
 ggsave(plot = air1,
        file = b1,
        dpi = 300,
@@ -567,7 +567,7 @@ air2 <- air2 + theme(plot.title = element_text(color = "black", size = 12, face 
 air2
 
 #Save the graph
-b2 <- "/Users/b/Desktop/b2.jpg"
+b2 <- "images/b2.jpg"
 ggsave(plot = air2,
        file = b2,
        dpi = 300,
