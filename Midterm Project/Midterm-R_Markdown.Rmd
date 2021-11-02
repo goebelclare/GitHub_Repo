@@ -552,7 +552,7 @@ library(scales)
 
 #Aggregate data by total deaths by country
 deathsbyyear_c <- group_by(.data = final_df,SDGRegion, Country.x)
-totdeath_c <- summarize(.data = deathsbyyear_c, total = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
+totdeath_c <- summarize(.data = deathsbyyear_c, total = mean(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
 str(totdeath_c)
 
 topdeaths_c <- totdeath_c[order(totdeath_c$total, decreasing = TRUE), ]  # Top N highest values by group
@@ -565,11 +565,11 @@ air1 <- ggplot(data = topdeaths_c,
       geom_segment(data = topdeaths_c,
                mapping = aes(x = 0, xend = total, y = reorder(Country.x, total), yend = Country.x)) +
       geom_point() +
-      scale_x_continuous(label = comma, limits = c(0, 8000), breaks = seq(0,8000,1000)) +
-      scale_color_manual(values = c("firebrick1","lightpink1","green4")) 
+      scale_x_continuous(label = comma, limits = c(0, 300), breaks = seq(0,300,50)) +
+      scale_color_manual(values = c("firebrick1","lightpink1","green4", "steelblue")) 
 
-air1 <- air1 + labs(title = "10 Countries with the Highest Deaths per 100,000",
-                            subtitle = "Deaths due to Air Pollution, 1990 - 2017", 
+air1 <- air1 + labs(title = "10 Countries with the Highest Average Deaths per 100,000",
+                            subtitle = "Deaths due to Air Pollution, between 1990 - 2017", 
                             caption = "Data Source: Kaggle",
                             x = "Deaths per 100,000",
                             y = "") +
@@ -613,11 +613,11 @@ air2 <- ggplot(data = lowdeaths_c,
       geom_segment(data = lowdeaths_c,
                mapping = aes(x = 0, xend = total, y = reorder(Country.x, -total), yend = Country.x)) +
       geom_point() +
-      scale_x_continuous(label = comma, limits = c(0, 8000), breaks = seq(0,8000,1000)) +
+      scale_x_continuous(label = comma, limits = c(0, 30), breaks = seq(0,30,5)) +
       scale_color_manual(values = c("darkorange3","azure4", "dodgerblue4","gold1", "cyan1","green4")) 
 
-air2 <- air2 + labs(title = "Countries with the Lowest Deaths per 100,000",
-                            subtitle = "Deaths due to Air Pollution, 1990 - 2017", 
+air2 <- air2 + labs(title = "10 Countries with the Lowest Average Deaths per 100,000",
+                            subtitle = "Deaths due to Air Pollution, between 1990 - 2017", 
                             caption = "Data Source: Kaggle",
                             x = "Deaths per 100,000",
                             y = "") +
@@ -709,7 +709,7 @@ deaths_line <- ggplot() +
               scale_y_continuous(label = comma, limits = c(0, 40000), breaks = seq(0,40000,10000)) 
              # scale_x_discrete(limits = c(1990, 2017), breaks = seq(1990,2017,2)) 
 
-deaths_line <- deaths_line + labs(title = "Deaths per 1000,000 by Air Pollution",
+deaths_line <- deaths_line + labs(title = "Average Deaths per 1000,000 by Air Pollution",
                                             subtitle = "1990 - 2017", 
                                             caption = "Data Source: Kaggle",
                                             y = "Deaths due to Air Pollution",
