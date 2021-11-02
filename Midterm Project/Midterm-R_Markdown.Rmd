@@ -325,7 +325,7 @@ final_df <- merge(x = final_df, y = world_df_cleaned, by.x = 'ISO.alpha2.code', 
 final_df <- subset(final_df, select = -c(Country.or.Area, Country.y, Country))
 
 # Calculate GDP per capita 
-final_df$gdp.per.capita <- final_df$GDP.USD / final_df$Population.thousands
+final_df$gdp.per.capita <- final_df$GDP.USD / (final_df$Population.thousands * 1000)
 
 #str(final_df)
 data.frame(variable = names(final_df),
@@ -1040,7 +1040,7 @@ We can then predict a country's deaths caused from air pollution in a given year
 
 
 $$
-log(Deaths_{from~air~pollution|per~year|per~country} / 100,000) = 10.07849 - 0.38952 * log(GDP_{per capita}) ~~~~~~~~~~~~~~~~  eqn (1)
+log(Deaths_{from~air~pollution|per~year|per~country} / 100,000) = 7.38778 - 0.38952 * log(GDP_{per capita}) ~~~~~~~~~~~~~~~~  eqn (1)
 $$
 
 or solving for our target variable:
@@ -1048,7 +1048,7 @@ or solving for our target variable:
 
 
 $$
-Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
+Deaths_{from~air~pollution|per~year|per~country} = 10^{7.38778 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
 
 ### Is there a difference in means of death caused by pollution between low, mid, and high GDP per capita?
@@ -1191,7 +1191,7 @@ Conclusion of test6: p-value~test6~ is less than $\alpha$~0.05~, therefore we re
 From all of our tests, we can confirm that the means of deaths caused by air pollution are statistically significant when grouped by different levels of GDP per capita. This reinforces the idea that deaths caused by air pollution has a significant relationship with GDP per capita and the model can be quantified by *Equation 2*:
 
 $$
-Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
+Deaths_{from~air~pollution|per~year|per~country} = 10^{7.38778 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
 
 The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure XX.
