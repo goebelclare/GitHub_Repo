@@ -779,7 +779,7 @@ total3 <- merge(total1,total2, by="Year")
 library(ggplot2)
 # total
 ggplot(total3, aes(x=Year, y=air_pollution_total)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
      theme_minimal() +
   theme(axis.title = element_text(size = 5, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -792,7 +792,7 @@ ggplot(total3, aes(x=Year, y=air_pollution_total)) +
 
 # indoor
 ggplot(total3, aes(x=Year, y=air_pollution_indoor)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
      theme_minimal() +
   theme(axis.title = element_text(size = 5, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -805,7 +805,7 @@ ggplot(total3, aes(x=Year, y=air_pollution_indoor)) +
             
 # outdoor particulate
 ggplot(total3, aes(x=Year, y=air_pollution_outdoorP)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
    theme_minimal() +
               theme(axis.title = element_text(size = 5, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -817,7 +817,7 @@ ggplot(total3, aes(x=Year, y=air_pollution_outdoorP)) +
                     axis.ticks = element_line(color = "black"))
 # outdoor ozone 
 ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
    theme_minimal() +
               theme(axis.title = element_text(size = 5, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -851,7 +851,7 @@ library("ggplot2")
 
 # Year of max and min of total pollution
 ggplot(special1, aes(x=Year, y=air_pollution_total)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
    theme_minimal() +
               theme(axis.title = element_text(size = 8, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -863,7 +863,7 @@ ggplot(special1, aes(x=Year, y=air_pollution_total)) +
    
 # Year of max and min of indoor pollution
 ggplot(special2, aes(x=Year, y=air_pollution_indoor)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
      theme_minimal() +
               theme(axis.title = element_text(size = 8, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -875,7 +875,7 @@ ggplot(special2, aes(x=Year, y=air_pollution_indoor)) +
 
 # Year of max and min of ourdoor particulate pollution
 ggplot(special3, aes(x=Year, y=air_pollution_outdoorP)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
      theme_minimal() +
               theme(axis.title = element_text(size = 8, face = "bold"),
                     panel.grid.major.x = element_blank(),
@@ -887,7 +887,7 @@ ggplot(special3, aes(x=Year, y=air_pollution_outdoorP)) +
 
 # Year of max and min of outdoor ozone pollution
 ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
-    geom_bar(stat='identity', position='dodge') +
+    geom_bar(stat='identity', position='dodge', fill= "dodgerblue") +
    theme_minimal() +
               theme(axis.title = element_text(size = 8, face = "bold"),
                     panel.grid.major.x = element_blank(),
