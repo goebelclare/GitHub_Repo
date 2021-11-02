@@ -38,6 +38,8 @@ library(spData)
 library(sf) #install.packages("sf")
 library(ggpubr) #install.packages("ggpubr")
 library(dplyr) #install.packages("dplyr")
+library(knitr)
+library(magrittr)
 loadPkg("faraway")
 
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
@@ -59,7 +61,7 @@ Climate issues are pervasive but typically disproportionately affect low income 
 
 Before we start, we need to ensure that we have all the relevant libraries installed and imported.
 
-Run these in the console to install packages in addition to the ezids package.
+Run these in the console, or only the ones that your system does not have, to install packages in addition to the ezids package.
 ```
 install.packages("tidyverse")
 install.packages("rworldmap")
@@ -68,6 +70,8 @@ install.packages("spData")
 install.packages("sf")
 install.packages("ggpubr")
 install.packages("dplyr")
+install.packages("knitr")
+install.packages("magrittr")
 ```
 
 # 2. Data Sources and Data Wrangling
@@ -125,23 +129,54 @@ population_region_df <- read.csv("data/population_in_thousands_region.csv", head
 ```
 
 ```{r 3.2, results =T, echo=F}
-str(country_codes_df)
+#str(country_codes_df)
+data.frame(variable = names(country_codes_df),
+           class = sapply(country_codes_df, typeof),
+           first_values = sapply(country_codes_df, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL) %>% 
+kable(caption='Figure 5: Structure of country_codes_df')
 ```
 
 ```{r 3.3, results =T, echo=F}
-str(air_pollution_df)
+#str(air_pollution_df)
+data.frame(variable = names(air_pollution_df),
+           class = sapply(air_pollution_df, typeof),
+           first_values = sapply(air_pollution_df, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL) %>% 
+kable(caption='Figure 6: Structure of air_pollution_df')
 ```
+
 
 ```{r 3.4, results =T, echo=F}
-str(gdp_df)
+#str(gdp_df)
+
+head(data.frame(variable = names(gdp_df),
+           class = sapply(gdp_df, typeof),
+           first_values = sapply(gdp_df, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL), 10) %>% 
+kable(caption='Figure 7: Structure of gdp_df, not showing all years in table to retain space but years go up to X2020')
 ```
+
 
 ```{r 3.5, results =T, echo=F}
-str(population_region_df)
+#str(population_region_df)
+
+head(data.frame(variable = names(population_region_df),
+           class = sapply(population_region_df, typeof),
+           first_values = sapply(population_region_df, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL), 10) %>% 
+kable(caption='Figure 8: Structure of population_region_df, not showing all years in table to retain space but years go up to X2020')
 ```
 
+
 ```{r 3.5.1, results =T, echo=F}
-str(world)
+#str(world)
+
+head(data.frame(variable = names(world),
+           class = sapply(world, typeof),
+           first_values = sapply(world, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL), 10) %>% 
+kable(caption='Figure 9: Structure of world, not showing geom feature in table as it has unique list of values per row and therefore is extremely large to display.')
 ```
 
 ## Clean Data
@@ -161,7 +196,13 @@ air_pollution_df_cleaned$Year = factor(air_pollution_df_cleaned$Year)
 # Rename columns
 air_pollution_df_cleaned <- rename(air_pollution_df_cleaned, Country = Entity, ISO.alpha3.code = Code, Deaths.Air.Pollution.per.100k = Air.pollution..total...deaths.per.100.000.)
 
-str(air_pollution_df_cleaned)
+#str(air_pollution_df_cleaned)
+
+data.frame(variable = names(air_pollution_df_cleaned),
+           class = sapply(air_pollution_df_cleaned, typeof),
+           first_values = sapply(air_pollution_df_cleaned, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL) %>% 
+kable(caption='Figure 10: Structure of air_pollution_df_cleaned')
 ```
 
 ### Clean *gdp_df*:
@@ -189,7 +230,13 @@ gdp_df_cleaned$Year = factor(gdp_df_cleaned$Year)
 # Rename columns
 gdp_df_cleaned <- rename(gdp_df_cleaned, Country = Country.Name, ISO.alpha3.code = Country.Code)
 
-str(gdp_df_cleaned)
+#str(gdp_df_cleaned)
+
+data.frame(variable = names(gdp_df_cleaned),
+           class = sapply(gdp_df_cleaned, typeof),
+           first_values = sapply(gdp_df_cleaned, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL) %>% 
+kable(caption='Figure 11: Structure of gdp_df_cleaned')
 ```
 
 ### Clean *population_region_df*:
@@ -221,7 +268,13 @@ population_region_df_cleaned$Population.thousands = as.numeric(population_region
 # Rename columns
 population_region_df_cleaned <- rename(population_region_df_cleaned, M49.code = Country.code)
 
-str(population_region_df_cleaned)
+#str(population_region_df_cleaned)
+
+data.frame(variable = names(population_region_df_cleaned),
+           class = sapply(population_region_df_cleaned, typeof),
+           first_values = sapply(population_region_df_cleaned, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL) %>% 
+kable(caption='Figure 12: Structure of population_region_df_cleaned')
 ```
 
 ### Clean *population_region_df*:
@@ -232,7 +285,12 @@ country_codes_df$Country.or.Area = factor(country_codes_df$Country.or.Area)
 country_codes_df$ISO.alpha3.code = factor(country_codes_df$ISO.alpha3.code)
 country_codes_df$ISO.alpha2.code = factor(country_codes_df$ISO.alpha2.code)
 
-str(country_codes_df)
+#str(country_codes_df)
+data.frame(variable = names(country_codes_df),
+           class = sapply(country_codes_df, typeof),
+           first_values = sapply(country_codes_df, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL) %>% 
+kable(caption='Figure 13: Structure of country_codes_df')
 ```
 
 ### Clean *world*:
@@ -243,7 +301,12 @@ world$iso_a2 = factor(world$iso_a2)
 # Remove columns
 world_df_cleaned <- subset(world, select = c(iso_a2, geom))
 
-str(world_df_cleaned)
+#str(world_df_cleaned)
+head(data.frame(variable = names(world_df_cleaned),
+           class = sapply(world_df_cleaned, typeof),
+           first_values = sapply(world_df_cleaned, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL), 1) %>% 
+kable(caption='Figure 14: Structure of world_df_cleaned, not showing geom feature in table as it has unique list of values per row and therefore is extremely large to display.')
 ```
 
 Note that we only have geometries for 175 countries, some will not be able to be plot on a map but that is okay.
@@ -264,7 +327,12 @@ final_df <- subset(final_df, select = -c(Country.or.Area, Country.y, Country))
 # Calculate GDP per capita 
 final_df$gdp.per.capita <- final_df$GDP.USD / final_df$Population.thousands
 
-str(final_df)
+#str(final_df)
+data.frame(variable = names(final_df),
+           class = sapply(final_df, typeof),
+           first_values = sapply(final_df, function(x) paste0(head(x),  collapse = ", ")),
+           row.names = NULL) %>% 
+kable(caption='Figure 15: Structure of final_df')
 ```
 
 Our dataset is finally ready to be analyzed.
@@ -303,8 +371,10 @@ death_hist <- death_hist + theme(plot.title = element_text(color = "black", size
                            plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
 
 death_hist
+```
+: *Figure 16: Histogram of Air Pollution Induced Deaths per 100k.*
 
-
+```{r 4.1.1, results='markup', fig.align="center", echo=F}
 ##Population
 pop_hist <- ggplot() + geom_histogram(data = final_df, aes(x = Population.thousands), bins=30, color="darkgreen", fill="green4")  +
               labs(title = "Population Distribution",
@@ -330,7 +400,10 @@ pop_hist <- pop_hist + theme(plot.title = element_text(color = "black", size = 1
                            plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
 
 pop_hist
+```
+: *Figure 17: Histogram of Population.*
 
+```{r 4.1.2, results='markup', fig.align="center", echo=F}
 ##GDP
 gdp_hist <- ggplot() + geom_histogram(data = final_df, aes(x = gdp.per.capita), bins=30, color="orangered4", fill="orangered3")  +
               labs(title = "Distribution of GDP per Capita",
@@ -357,7 +430,7 @@ gdp_hist <- gdp_hist + theme(plot.title = element_text(color = "black", size = 1
 
 gdp_hist
 ```
-: *Figure 5,6,7: Histogram of Air Pollution Induced Deaths, Population, and GDP per Capita.*
+: *Figure 18: Histogram of GDP per Capita.*
 
 Looks like *deaths.air.pollution.per.100k*, *population*, and *gdp.per.capita* are not normal and are all right skewed. 
 
@@ -373,7 +446,7 @@ death_boxplot <- death_boxplot + labs(title="BoxPlot of Deaths per 100,000 from 
 death_boxplot
 
 ```
-: *Figure 8: Boxplot of Deaths per 100,000 from Air Pollution vs SDG Region*
+: *Figure 19: Boxplot of Deaths per 100,000 from Air Pollution vs SDG Region*
 
 Interesting to note that Australia/New Zealand, Europe, North America seem to have the lowest deaths per 100k from air pollution and are all fairly compactly packed together (low variance) relative to other regions around the world. Furthermore, these region contain the most advanced countries.
 
@@ -386,7 +459,7 @@ sub_boxplot <- sub_boxplot + labs(title="BoxPlot of Deaths per 100k from Air Pol
   theme_classic() + theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 4))
 sub_boxplot
 ```
-: *Figure 9: Boxplot of Deaths per 100k from Air Pollution vs Sub Region*
+: *Figure 20: Boxplot of Deaths per 100k from Air Pollution vs Sub Region*
 
 Separating out into an even granular grouping of regions show some trends where Australia/New Zealand, North America, Northern Europe, and Western Europe all have low deaths per 100k and have low variance. Historically, these regions consist of countries that have been considered *'First World'* before our first year of analysis of 1990. We will dig into this more later in our SMART questions.
 
@@ -399,13 +472,13 @@ gdp_boxplot <- gdp_boxplot + labs(title="BoxPlot of GDP per Capita, by Sub Regio
   theme_classic() + theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 4))
 gdp_boxplot
 ```
-: *Figure 10: Boxplot of GDP per Capita vs Sub Region*
+: *Figure 21: Boxplot of GDP per Capita vs Sub Region*
 
 Interesting to observe that the same subregions that have low deaths caused by air pollution also have high GDP per capita comparatively. We will try to see if we can quantify this relationship later on in our main research analysis.
   
 ### Map of Countries
 
-Plotting maps and maps with intensities will be useful for us to visualize our data and the results of our analysis.
+Due to the nature of our data set, plotting maps and maps with intensities can add another dimension to how we visualize and therefore understand our data.
 
 ```{r 4.5, include=TRUE, fig.align="center", echo=F}
 # Convert to sf object so we can plot it
@@ -419,12 +492,12 @@ final_df_sf_intensities <- subset(final_df_sf, select = c(gdp.per.capita, Deaths
 ```{r 4.6, include=TRUE, fig.align="center", echo=F}
 plot(final_df_sf_regions)
 ```
-: *Figure 11: Global Map of SDGRegions and SubRegions*
+: *Figure 22: Global Map of SDGRegions and SubRegions*
 
 ```{r 4.7, include=TRUE, fig.align="center", echo=F}
 plot(final_df_sf_intensities)
 ```
-: *Figure 12: Global Intensity Map of Key Numerical Features, 1990 to 2017*
+: *Figure 23: Global Intensity Map of Key Numerical Features, 1990 to 2017*
 
 Looks like some inverse correlation between gdp.per.capita and deaths.air.pollution.per.100k.
 
@@ -436,14 +509,14 @@ g1 = ggplot() + geom_sf(data = final_df_sf, aes(fill = Deaths.Air.Pollution.per.
 
 g1
 ```
-: *Figure 13: Global Intensity Map of Deaths due to Air Pollution per 100k People, 1990 to 2017*
+: *Figure 24: Global Intensity Map of Deaths due to Air Pollution per 100k People, 1990 to 2017*
 
 ```{r 4.9, include=TRUE, fig.align="center", echo=F}
 g2 = ggplot() + geom_sf(data = final_df_sf[final_df_sf$SDGRegion == 'EASTERNANDSOUTH-EASTERNASIA' & final_df_sf$Year == 2017, ], aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283))
 
 g2
 ```
-: *Figure 14: Intensity Map of Deaths due to Air Pollution per 100k People in East and Southeastern Asia, 2017*
+: *Figure 25: Intensity Map of Deaths due to Air Pollution per 100k People in East and Southeastern Asia, 2017*
 
 ## SMART Questions
 
@@ -627,7 +700,7 @@ library(scales)
 #Aggregate data by total deaths by year
 deathsbyyear <- group_by(.data = final_df,Year)
 totdeath <- summarize(.data = deathsbyyear, tot_deaths = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
-str(totdeath)
+#str(totdeath)
 
 deaths_line <- ggplot() +
                geom_line(data = totdeath, mapping = aes(x = Year, y = tot_deaths, group = 1), size = 1.2) +
@@ -666,9 +739,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r 200, include=TRUE, echo=F}
-str(air_pollution_df)
+```{r 200, include=FALSE, echo=F}
+#str(air_pollution_df)
 ```
+
 ```{r 300, include=TRUE, echo=F}
 # select what we need
 air_pollution_dfneed <- subset(air_pollution_df, select = -c(Code))
@@ -844,7 +918,7 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   stat_regline_equation(label.y = 400, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 350, aes(label = ..rr.label..))
 ```
-: *Fig XX: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita, 1990 to 2017.*
+: *Figure XX: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita, 1990 to 2017.*
 
 From the plot, we observe that there is indeed a negative correlation between deaths due to air pollution per 100k and GDP per capita. However, the strength of that relationship is not particularly strong as the R^2^ is really low at `r summary(fit1)$r.squared`. This means that only 29% of the variance experienced in deaths due to air pollution per 100k is caused by GDP per capita in a linear relationship.
 
@@ -859,9 +933,10 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   theme_grey(base_size = 7) +
   facet_wrap(~SDGRegion, ncol = 3, scales='free')
 ```
-: *Fig XX: Linear models for each SDGRegion, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
+: *Figure XX: Linear models for each SDGRegion, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
 
 Let's now look at how slicing by annual changes plays a part.
+
 ```{r 5.2.5, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   geom_point(size=0.25) +
@@ -871,7 +946,8 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   theme_grey(base_size = 4) +
   facet_wrap(~Year, ncol = 7, scales='free')
 ```
-: *Fig XX: Linear models for each Year, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
+: *Figure XX: Linear models for each Year, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
+
 
 As observed, time does not seem to play a significant part in describing the relationship between deaths due to air pollution per 100k vs GDP per capita as the R^2^ stays roughly constant around 0.3 across all the years.
 
@@ -880,16 +956,22 @@ As observed, time does not seem to play a significant part in describing the rel
 Perhaps we should look at a non-linear fit. From our visuals, we see that every plot starts off at really high deaths due to air pollution per 100k then drops off dramatically as GDP per capita increases. However, the drop off begins to tamper off and asymptotically approaches some value. (*It will be interesting to see if we can generalize what that GDP per capita value is. Let's table that for later.*) We have seen this type of behavior before in log graphs such as one shown below.
 
 ![Sample Log Graph](images/sample_log_graph.png)
-: *Fig XX: Sample log graph.*
+: *Figure XX: Sample log graph.*
 
 Our data seems to be a -log(x) instead of log(x). Let's transform our linear fit to a log fit by wrapping our features into a log() function and fitting back to a linear fit and see what the relationship is.
+
+fit2's summary statistics are:
 
 ```{r 5.3, include=TRUE, fig.align="center", echo=F}
 fit2 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita), data=final_df_sf)
 
 summary(fit2)
 # print(vif(fit2))
+```
 
+Let's replot with this new fit.
+
+```{r 5.3.1, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
   geom_point(size=0.75) +
   geom_smooth(method='lm') +
@@ -897,7 +979,10 @@ ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))
   stat_regline_equation(label.y = 6, aes(label = ..rr.label..), size=2) +
   theme_grey(base_size = 7) +
   facet_wrap(~SDGRegion, ncol = 3, scales='free')
+```
+: *Figure XX Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship by SDGRegion.*
 
+```{r 5.3.2, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
   geom_point(size=0.25) +
   geom_smooth(method='lm') +
@@ -905,18 +990,21 @@ ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))
   stat_regline_equation(label.y = 6, aes(label = ..rr.label..), size=1.5) +
   theme_grey(base_size = 4) +
   facet_wrap(~Year, ncol = 7, scales='free')
+```
+: *Figure XX Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship by years.*
 
+```{r 5.3.3, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
   geom_point() +
   geom_smooth(method='lm', se=FALSE) +
   stat_regline_equation(label.y = 7, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 6, aes(label = ..rr.label..))
 ```
-: *Fig XX, XX, XX: Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship across the board.*
+: *Figure XX Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship.*
 
 Across the board, the strength of our linear relationship increases dramatically when first transforming both features by the log() function first. The new R^2^ is now `r summary(fit2)$r.squared` which means around 74% of the variance in our target feature can be explained by this mathematical relationship.
 
-Let's test a few more regression models adding more features.
+Let's test a few more regression models by adding more features and see what happens.
 
 ```{r 5.4, include=TRUE, fig.align="center", echo=T}
 fit3 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion, data=final_df_sf)
@@ -925,19 +1013,21 @@ fit5 <- lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year, data=f
 ```
 R^2^ values for adding more features are in fit3, fit4, and fit5 are `r summary(fit3)$r.squared`, `r summary(fit4)$r.squared`, and `r summary(fit5)$r.squared` respectively.
 
+Let's check out the VIFs to see if we should keep any of our new models.
+
 ```{r Q5.4.1, include=FALSE}
 knitr::opts_chunk$set(warning = F, results = "show", message = F)
 ```
 ```{r Q5.4.2, include=TRUE, echo=F}
-xkablevif(fit3, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year')
+xkablevif(fit3, title='Figure XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year')
 ```
 
 ```{r Q5.4.3, include=TRUE, echo=F}
-xkablevif(fit4, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year.')
+xkablevif(fit4, title='Figure XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year.')
 ```
 
 ```{r Q5.4.4, include=TRUE, echo=F}
-xkablevif(fit5, title='Fig XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year.')
+xkablevif(fit5, title='Figure XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year.')
 ```
 
 ```{r Q5.4.5, include=FALSE}
@@ -973,7 +1063,7 @@ H~0~: $\mu$~deaths_lowest_gdp~ = $\mu$~deaths_low_gdp~ = $\mu$~deaths_medium_gdp
 
 H~1~: At least one of $\mu$~deaths_lowest_gdp~, $\mu$~deaths_low_gdp~, $\mu$~deaths_medium_gdp~, $\mu$~deaths_high_gdp~ is not equal
 
-We will sse an $\alpha$ value of 0.05.
+We will use an $\alpha$ value of 0.05.
 
 ```{r Q5.9, include=TRUE, echo=F}
 # divide df$am.spent 
@@ -1104,7 +1194,7 @@ $$
 Deaths_{from~air~pollution|per~year|per~country} = 10^{10.07849 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
 
-The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Fig XX.
+The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure XX.
 
 
 ### Areas of Further Analysis
@@ -1115,11 +1205,11 @@ This data set has many avenues for further statistical analysis and modeling. So
 
 # 7. Bibliography
 
-| Name                                                      | Link                                                                                       |
+| Number                                                      | APA Citation                                                                                       |
 |-----------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| Making maps with R                                        | [Link](https://geocompr.robinlovelace.net/adv-map.html)                                    |
-| Geographic data in R                                      | [Link](https://geocompr.robinlovelace.net/spatial-class.html#intro-sf)                     |
-| Maps in ggplot2                                           | [Link](https://ggplot2-book.org/maps.html)                                                 |
-| ggplot2 color scales                                      | [Link](https://spielmanlab.github.io/introverse/articles/color_fill_scales.html)           |
-| Sample log graph                                          | [Link](https://saylordotorg.github.io/text_intermediate-algebra/s10-03-logarithmic-functions-and-thei.html)           |
-: Fig X: References
+| 1                                        | Robin Lovelace, J. N. (n.d.). Chapter 8 Making maps with R: Geocomputation with R. Retrieved October 28, 2021, from https://geocompr.robinlovelace.net/adv-map.html                                  |
+| 2                                     | Robin Lovelace, J. N. (2021, October 28). Chapter 2 Geographic data in R: Geocomputation with R. Retrieved from https://geocompr.robinlovelace.net/spatial-class.html#intro-sf                     |
+| 3                                          | Hadley Wickham, D. N. (2021, October 28). 6 Maps. Retrieved from https://ggplot2-book.org/maps.html                                                |
+| 4                                      | Customizing ggplot2 color and fill scales. (2021, October 28). Retrieved from https://spielmanlab.github.io/introverse/articles/color_fill_scales.html           |
+| 5                                          | Logarithmic Functions. (2021, October 28). Retrieved from https://saylordotorg.github.io/text_intermediate-algebra/s10-03-logarithmic-functions-and-thei.html         |
+: Figure X: References
