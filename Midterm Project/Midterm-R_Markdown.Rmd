@@ -476,6 +476,24 @@ gdp_boxplot
 
 Interesting to observe that the same subregions that have low deaths caused by air pollution also have high GDP per capita comparatively. We will try to see if we can quantify this relationship later on in our main research analysis.
   
+### Check for Outliers
+
+Let's check for outliers in our main numerical continuous variables.
+
+Feature 1: GDP per Capita
+: *Figure 22: Inspecting Outliers for gdp.per.capita*
+```{r 4.4.1, include=TRUE, fig.align="center", echo=F}
+final_df <- outlierKD2(final_df, gdp.per.capita, rm=FALSE, boxplt=TRUE)
+```
+
+Feature 2: Deaths due to Air Pollution per 100k
+: *Figure 23: Inspecting Outliers for Deaths.Air.Pollution.per.100k*
+```{r 4.4.2, include=TRUE, fig.align="center", echo=F}
+final_df <- outlierKD2(final_df, Deaths.Air.Pollution.per.100k, rm=FALSE, boxplt=TRUE)
+``` 
+
+From the outlier analysis, we feel that *Deaths.Air.Pollution.per.100k* definitely do not need to have outliers removed as it only represents 0.7% of the dataset. *gdp.per.capita* have higher percentage of classified outliers at 13.5%, however, we feel that keeping the extreme datapoints of this feature is important in our research and analysis to capture the true disproportionate distribution of wealth and progress across countries in our world.
+  
 ### Map of Countries
 
 Due to the nature of our data set, plotting maps and maps with intensities can add another dimension to how we visualize and therefore understand our data.
@@ -489,34 +507,57 @@ final_df_sf_regions <- subset(final_df_sf, select = c(SDGRegion, SubRegion))
 final_df_sf_intensities <- subset(final_df_sf, select = c(gdp.per.capita, Deaths.Air.Pollution.per.100k, Population.thousands))
 ```
 
+First, let's just take a look at how the different defined regions are grouped.
+
 ```{r 4.6, include=TRUE, fig.align="center", echo=F}
 plot(final_df_sf_regions)
 ```
-: *Figure 22: Global Map of SDGRegions and SubRegions*
-
-```{r 4.7, include=TRUE, fig.align="center", echo=F}
-plot(final_df_sf_intensities)
-```
-: *Figure 23: Global Intensity Map of Key Numerical Features, 1990 to 2017*
-
-Looks like some inverse correlation between gdp.per.capita and deaths.air.pollution.per.100k.
-
-
-We can also use ggplot2 to have a bit more control over map plotting.
+: *Figure 24: Global Map of SDGRegions and SubRegions*
 
 ```{r 4.8, include=TRUE, fig.align="center", echo=F}
-g1 = ggplot() + geom_sf(data = final_df_sf, aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283))
-
+g1 = ggplot() + geom_sf(data = final_df_sf, aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283)) + labs(title = "Effect of Deaths due to Air Pollution per 100k by Countries",
+              caption = "Data Source: Kaggle")
 g1
 ```
-: *Figure 24: Global Intensity Map of Deaths due to Air Pollution per 100k People, 1990 to 2017*
+: *Figure 25: Global Intensity Map of Deaths due to Air Pollution per 100k People, 1990 to 2017*
 
-```{r 4.9, include=TRUE, fig.align="center", echo=F}
-g2 = ggplot() + geom_sf(data = final_df_sf[final_df_sf$SDGRegion == 'EASTERNANDSOUTH-EASTERNASIA' & final_df_sf$Year == 2017, ], aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283))
+```{r 4.8.01, include=TRUE, fig.align="center", echo=F}
+g2 = ggplot() + geom_sf(data = final_df_sf, aes(fill = gdp.per.capita), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283)) + labs(title = "GDP per Capita by Countries",
+              caption = "Data Source: United Nations")
 
 g2
 ```
-: *Figure 25: Intensity Map of Deaths due to Air Pollution per 100k People in East and Southeastern Asia, 2017*
+: *Figure 26: Global Intensity Map of GDP per Capita by Countries, 1990 to 2017*
+
+Looks like some inverse correlation between *gdp.per.capita* and *deaths.air.pollution.per.100k* where the really high values (yellow to grey) in one figure is not in the other. This hints at some inverse relationship between these 2 features. We will dig into this more later in the report.
+
+```{r 4.8.1, include=TRUE, fig.align="center", echo=F}
+g3 = ggplot() + geom_sf(data = final_df_sf, aes(fill = Population.thousands), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283)) + labs(title = "Population (thousands) by Countries",
+              caption = "Data Source: United Nations")
+
+g3
+```
+: *Figure 27: Global Intensity Map of Population by Countries, 1990 to 2017*
+
+Not surprised here that China and India lead population for the world.
+
+We also have the capability to inspect particular regions or countries only. Here we are showing a couple of regions to explore visually.
+
+```{r 4.9, include=TRUE, fig.align="center", echo=F}
+g4 = ggplot() + geom_sf(data = final_df_sf[final_df_sf$SDGRegion == 'EASTERNANDSOUTH-EASTERNASIA' & final_df_sf$Year == 2017, ], aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283)) + labs(title = "Population (thousands) by Countries", subtitle = "East and South-Eastern Asia",
+              caption = "Data Source: United Nations")
+
+g4
+```
+: *Figure 28: Intensity Map of Deaths due to Air Pollution per 100k People in East and Southeastern Asia, 2017*
+
+```{r 4.9.1, include=TRUE, fig.align="center", echo=F}
+g5 = ggplot() + geom_sf(data = final_df_sf[final_df_sf$SDGRegion == 'SUB-SAHARANAFRICA' & final_df_sf$Year == 2017, ], aes(fill = Deaths.Air.Pollution.per.100k), color = 'black') + scale_fill_distiller(palette = "YlGnBu") + coord_sf(crs = st_crs(4283)) + labs(title = "Population (thousands) by Countries", subtitle = "Sub-Saharan Africa",
+              caption = "Data Source: United Nations")
+
+g5
+```
+: *Figure 29: Intensity Map of Deaths due to Air Pollution per 100k People in Sub-Saharan Africa, 2017*
 
 ## SMART Questions
 
@@ -544,6 +585,7 @@ xkabledply(pop_poll_cor)
 loadPkg("corrplot")
 corrplot(pop_poll_cor)
 ```
+: *Figure 30, 31, 32: *
 
 ### 2. Which countries had the highest and lowest deaths due to air pollution from 1990 - 2017? How is this related to the region?
 ```{r SQ2, results='markup', echo=F}
@@ -649,7 +691,7 @@ air2
 #       width = 5,
 #       height = 4)
 ```
-
+: *Figure 33, 34: *
 
 ### 3. Which regions have the lowest and highest deaths due to air pollution?
 
@@ -691,7 +733,7 @@ deaths_line <- deaths_line + labs(title = "Total Deaths per 100,000 by Air Pollu
             deaths_line
 
 ```
-
+: *Figure 35: *
 
 ### 4. How does deaths due to air pollution increase over time? More specifically, are death rates in recent X amount of years higher than death rates from groups of X years before?
 
@@ -733,6 +775,7 @@ deaths_line <- deaths_line + labs(title = "Average Deaths per 1000,000 by Air Po
             deaths_line
 
 ```
+: *Figure 36: *
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -829,6 +872,8 @@ ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
                     axis.ticks = element_line(color = "black"))
    
 ```
+: *Figure 36, 37, 38, 39: *
+
 ```{r 600, include=TRUE, echo=F}
 # The max and min years
 special1.1 <- sum_total[which.max(sum_total$air_pollution_total),]
@@ -898,7 +943,7 @@ ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
                     axis.ticks = element_line(color = "black"))
    
 ```
-
+: *Figure 40, 41, 42, 43: *
 
 # 5. Main Research Question
 
@@ -918,7 +963,7 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   stat_regline_equation(label.y = 400, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 350, aes(label = ..rr.label..))
 ```
-: *Figure XX: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita, 1990 to 2017.*
+: *Figure 44: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita, 1990 to 2017.*
 
 From the plot, we observe that there is indeed a negative correlation between deaths due to air pollution per 100k and GDP per capita. However, the strength of that relationship is not particularly strong as the R^2^ is really low at `r summary(fit1)$r.squared`. This means that only 29% of the variance experienced in deaths due to air pollution per 100k is caused by GDP per capita in a linear relationship.
 
@@ -933,7 +978,7 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   theme_grey(base_size = 7) +
   facet_wrap(~SDGRegion, ncol = 3, scales='free')
 ```
-: *Figure XX: Linear models for each SDGRegion, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
+: *Figure 45: Linear models for each SDGRegion, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
 
 Let's now look at how slicing by annual changes plays a part.
 
@@ -946,7 +991,7 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   theme_grey(base_size = 4) +
   facet_wrap(~Year, ncol = 7, scales='free')
 ```
-: *Figure XX: Linear models for each Year, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
+: *Figure 46: Linear models for each Year, deaths due to air pollution per 100k vs GDP per capita, 1990 - 2017.*
 
 
 As observed, time does not seem to play a significant part in describing the relationship between deaths due to air pollution per 100k vs GDP per capita as the R^2^ stays roughly constant around 0.3 across all the years.
@@ -956,7 +1001,7 @@ As observed, time does not seem to play a significant part in describing the rel
 Perhaps we should look at a non-linear fit. From our visuals, we see that every plot starts off at really high deaths due to air pollution per 100k then drops off dramatically as GDP per capita increases. However, the drop off begins to tamper off and asymptotically approaches some value. (*It will be interesting to see if we can generalize what that GDP per capita value is. Let's table that for later.*) We have seen this type of behavior before in log graphs such as one shown below.
 
 ![Sample Log Graph](images/sample_log_graph.png)
-: *Figure XX: Sample log graph.*
+: *Figure 47: Sample log graph.*
 
 Our data seems to be a -log(x) instead of log(x). Let's transform our linear fit to a log fit by wrapping our features into a log() function and fitting back to a linear fit and see what the relationship is.
 
@@ -980,7 +1025,7 @@ ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))
   theme_grey(base_size = 7) +
   facet_wrap(~SDGRegion, ncol = 3, scales='free')
 ```
-: *Figure XX Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship by SDGRegion.*
+: *Figure 48 Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship by SDGRegion.*
 
 ```{r 5.3.2, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
@@ -991,7 +1036,7 @@ ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))
   theme_grey(base_size = 4) +
   facet_wrap(~Year, ncol = 7, scales='free')
 ```
-: *Figure XX Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship by years.*
+: *Figure 49: Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship by years.*
 
 ```{r 5.3.3, include=TRUE, fig.align="center", echo=F}
 ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))) +
@@ -1000,7 +1045,7 @@ ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))
   stat_regline_equation(label.y = 7, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 6, aes(label = ..rr.label..))
 ```
-: *Figure XX Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship.*
+: *Figure 50: Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship.*
 
 Across the board, the strength of our linear relationship increases dramatically when first transforming both features by the log() function first. The new R^2^ is now `r summary(fit2)$r.squared` which means around 74% of the variance in our target feature can be explained by this mathematical relationship.
 
@@ -1019,15 +1064,15 @@ Let's check out the VIFs to see if we should keep any of our new models.
 knitr::opts_chunk$set(warning = F, results = "show", message = F)
 ```
 ```{r Q5.4.2, include=TRUE, echo=F}
-xkablevif(fit3, title='Figure XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year')
+xkablevif(fit3, title='Figure 51: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year')
 ```
 
 ```{r Q5.4.3, include=TRUE, echo=F}
-xkablevif(fit4, title='Figure XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year.')
+xkablevif(fit4, title='Figure 52: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*SubRegion+Year.')
 ```
 
 ```{r Q5.4.4, include=TRUE, echo=F}
-xkablevif(fit5, title='Figure XX: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year.')
+xkablevif(fit5, title='Figure 53: VIF of lm(log(Deaths.Air.Pollution.per.100k) ~ log(gdp.per.capita)*Year.')
 ```
 
 ```{r Q5.4.5, include=FALSE}
@@ -1067,7 +1112,7 @@ We will use an $\alpha$ value of 0.05.
 
 ```{r Q5.9, include=TRUE, echo=F}
 # divide df$am.spent 
-final_df_sf$qnt <- cut(final_df_sf$gdp.per.capita , breaks=quantile(final_df_sf$gdp.per.capita),
+final_df_sf$qnt <- cut(final_df_sf$gdp.per.capita , breaks=quantile(final_df_sf$gdp.per.capita, na.rm = TRUE),
                                     labels=1:4, include.lowest=TRUE)
 
 # check ranges
@@ -1212,4 +1257,4 @@ This data set has many avenues for further statistical analysis and modeling. So
 | 3                                          | Hadley Wickham, D. N. (2021, October 28). 6 Maps. Retrieved from https://ggplot2-book.org/maps.html                                                |
 | 4                                      | Customizing ggplot2 color and fill scales. (2021, October 28). Retrieved from https://spielmanlab.github.io/introverse/articles/color_fill_scales.html           |
 | 5                                          | Logarithmic Functions. (2021, October 28). Retrieved from https://saylordotorg.github.io/text_intermediate-algebra/s10-03-logarithmic-functions-and-thei.html         |
-: Figure X: References
+: Figure 54: References
