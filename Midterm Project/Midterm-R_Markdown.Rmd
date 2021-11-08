@@ -876,7 +876,7 @@ ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
                     axis.ticks = element_line(color = "black"))
    
 ```
-: *Figure 36, 37, 38, 39: *
+: *Figure 36, 37, 38, 39: The distribution of Deaths per 100,000 caused by air pollution (total), indoor air pollution, outdoor particulate pollution, and outdoor ozone pollution from 1990 to 2017 *
 
 ```{r 600, include=TRUE, echo=F}
 # The max and min years
@@ -947,7 +947,7 @@ ggplot(special4, aes(x=Year, y=air_pollution_outdoorO)) +
                     axis.ticks = element_line(color = "black"))
    
 ```
-: *Figure 40, 41, 42, 43: *
+: *Figure 40, 41, 42, 43: The Years with the Highest and Lowest Deaths per 100,000 caused by air pollution (total), indoor air pollution, outdoor particulate pollution, and outdoor ozone pollution from 1990 to 2017 * *
 
 # 5. Main Research Question
 
