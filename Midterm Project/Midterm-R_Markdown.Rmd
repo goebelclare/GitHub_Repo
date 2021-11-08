@@ -566,13 +566,17 @@ g5
 Below, we would like to measure the relationship between Population size (in thousands) and Deaths per 100,000 due to air pollution. Since these variables are numerical, we have to confirm the normal distribution of both variables, and from the results below, we see that there is no correlation between a country's population size and their deaths due to air pollution. we do observe a negative correlation between Deaths due to air pollution and GDP per Capita.
 
 
-```{r SQ1, results='markup', echo=F}
-
-str(final_df)
+```{r SQ1, include=TRUE, fig.align="center", echo=F}
 
 #check normality
 qqnorm(final_df$Population.thousands)
 qqnorm(final_df$Deaths.Air.Pollution.per.100k)
+
+```
+: *Figure 30 and 31: Normality plots for Population and deaths per 100,000*
+
+
+```{r SQ1.1, include=TRUE, fig.align="center", echo=F}
 
 cor(final_df$Population.thousands, final_df$Deaths.Air.Pollution.per.100k, method = c("spearman"))
 
@@ -584,23 +588,25 @@ xkabledply(pop_poll_cor)
 #plot
 loadPkg("corrplot")
 corrplot(pop_poll_cor)
+
 ```
-: *Figure 30, 31, 32: *
+: *Figure 32: Correlation Plot for Population, Deaths per 100,000, ad GDP per Capita*
+
+
 
 ### 2. Which countries had the highest and lowest deaths due to air pollution from 1990 - 2017? How is this related to the region?
-```{r SQ2, results='markup', echo=F}
+```{r SQ2, include=TRUE, fig.align="center", echo=F}
 library("data.table")
 library(scales)
 
 #Aggregate data by total deaths by country
 deathsbyyear_c <- group_by(.data = final_df,SDGRegion, Country.x)
 totdeath_c <- summarize(.data = deathsbyyear_c, total = mean(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
-str(totdeath_c)
 
 topdeaths_c <- totdeath_c[order(totdeath_c$total, decreasing = TRUE), ]  # Top N highest values by group
 topdeaths_c <- data.table(topdeaths_c, key = "total")
 topdeaths_c <- topdeaths_c[ , tail(.SD, 10)]
-str(topdeaths_c)
+
 
 air1 <- ggplot(data = topdeaths_c,
              mapping = aes(x = total, y = reorder(Country.x , total, fill = SDGRegion), color = SDGRegion)) +
@@ -648,7 +654,6 @@ air1
 lowdeaths_c <- totdeath_c[order(totdeath_c$total, decreasing = FALSE), ]  # Top N lowest values by group
 lowdeaths_c <- data.table(lowdeaths_c, key = "total")
 lowdeaths_c <- lowdeaths_c[ , head(.SD, 10)]
-str(lowdeaths_c)
 
 air2 <- ggplot(data = lowdeaths_c,
              mapping = aes(x = total, y = reorder(Country.x , -total, fill = SDGRegion), color = SDGRegion)) +
@@ -691,24 +696,23 @@ air2
 #       width = 5,
 #       height = 4)
 ```
-: *Figure 33, 34: *
+: *Figure 33 and 34: Lollipop Graphs of the Top 10 Countries with the Lowest and Highest Average Deaths *
 
 ### 3. Which regions have the lowest and highest deaths due to air pollution?
 
-```{r SQ3, results='markup', echo=F}
+```{r SQ3, include=TRUE, fig.align="center", echo=F}
 library(scales)
 #Aggregate data by total deaths by year and region 
 deathsbyyear_reg <- group_by(.data = final_df,SDGRegion, Year)
 totdeath_reg <- summarize(.data = deathsbyyear_reg, total = sum(Deaths.Air.Pollution.per.100k, na.rm = TRUE))
-str(totdeath_reg)
 
-deaths_line <- ggplot(data = totdeath_reg[which(totdeath_reg$Year ==1990 | totdeath_reg$Year ==2017),], mapping = aes(x = total, y = SDGRegion, fill = Year), size = 1.2) +
+deaths_bar <- ggplot(data = totdeath_reg[which(totdeath_reg$Year ==1990 | totdeath_reg$Year ==2017),], mapping = aes(x = total, y = SDGRegion, fill = Year), size = 1.2) +
               geom_bar(position="dodge", stat="identity") +
               scale_x_continuous(label = comma, limits = c(0, 7500), breaks = seq(0,7500,1000)) +
               scale_fill_brewer(palette = "Paired") 
 
 
-deaths_line <- deaths_line + labs(title = "Total Deaths per 100,000 by Air Pollution, by Region",
+deaths_bar <- deaths_bar + labs(title = "Total Deaths per 100,000 by Air Pollution, by Region",
                                             subtitle = "1990 - 2017", 
                                             caption = "Data Source: Kaggle",
                                             y = "",
@@ -727,17 +731,17 @@ deaths_line <- deaths_line + labs(title = "Total Deaths per 100,000 by Air Pollu
                     plot.subtitle = element_text(size = 8),
                     plot.title = element_text(size = 10, margin = margin(b = 10)))
             
-            deaths_line <- deaths_line + theme(plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0),
+            deaths_bar <- deaths_bar + theme(plot.title = element_text(color = "black", size = 12, face = "bold", hjust = 0),
                                          plot.subtitle = element_text(color = "black", size = 10, hjust = 0 ),
                                          plot.caption = element_text(color = "black", size =8, face = "italic", hjust =0))
-            deaths_line
+            deaths_bar
 
 ```
-: *Figure 35: *
+: *Figure 35: Grouped Bar Chart of Total Deaths per 100,000, by Region in 1990 and 2017 *
 
 ### 4. How does deaths due to air pollution increase over time? More specifically, are death rates in recent X amount of years higher than death rates from groups of X years before?
 
-```{r sq4, results='markup', echo=F}
+```{r sq4, include=TRUE, fig.align="center", echo=F}
 library(scales)
 #Aggregate data by total deaths by year
 deathsbyyear <- group_by(.data = final_df,Year)
@@ -751,7 +755,7 @@ deaths_line <- ggplot() +
               scale_y_continuous(label = comma, limits = c(0, 40000), breaks = seq(0,40000,10000)) 
              # scale_x_discrete(limits = c(1990, 2017), breaks = seq(1990,2017,2)) 
 
-deaths_line <- deaths_line + labs(title = "Average Deaths per 1000,000 by Air Pollution",
+deaths_line <- deaths_line + labs(title = "Total Deaths per 1000,000 by Air Pollution",
                                             subtitle = "1990 - 2017", 
                                             caption = "Data Source: Kaggle",
                                             y = "Deaths due to Air Pollution",
@@ -775,7 +779,7 @@ deaths_line <- deaths_line + labs(title = "Average Deaths per 1000,000 by Air Po
             deaths_line
 
 ```
-: *Figure 36: *
+: *Figure 36: Line Chart of Total Deaths per 100,000 caused by Air Pollution from 1990 to 2017 *
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
