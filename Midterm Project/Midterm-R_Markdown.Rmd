@@ -1243,7 +1243,7 @@ $$
 Deaths_{from~air~pollution|per~year|per~country} = 10^{7.38778 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
 
-The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure XX.
+The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure 50.
 
 
 ### Areas of Further Analysis
