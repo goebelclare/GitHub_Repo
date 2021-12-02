@@ -588,10 +588,7 @@ p-value~test6~ < $\alpha$~0.05~ = `r ttest6$p.value < 0.05`
 
 Conclusion of test6: p-value~test6~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_low_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
 
-### Smart Questions for Modeling 
-
-
-# 6. Conclusion
+# 5. Conclusion- Main Research
 
 ### Main Research Results
 From all of our tests, we can confirm that the means of deaths caused by air pollution are statistically significant when grouped by different levels of GDP per capita. This reinforces the idea that deaths caused by air pollution has a significant relationship with GDP per capita and the model can be quantified by *Equation 2*:
@@ -602,14 +599,21 @@ $$
 
 The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure 50.
 
+#Smart Questions for Modeling 
 
-### Areas of Further Analysis
-This data set has many avenues for further statistical analysis and modeling. Some potential areas for further analysis include:
+# 6. Smart Questions for Further Modeling 
 
-* Can we quantify or create a mathematical model of what GDP per capita value reaches the asymptotic relationship we observed in the log data set?
-* Can we build a better performing predictor for Deaths per 100k due to Air Pollution using more powerful models (Random Forests, Gradient Boosting, SVMs) and/or by including more features? 
+### 1. What are the impacts of population size on GDP and Deaths due to Air Pollution globally?
 
-# 7. Bibliography
+### 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
+
+### 3. Can we let the data tell us what type of groupings exist in our dataset? How consistent are they to our preconceived groupings such as region or developed vs developing countries? 
+
+### 4. Can we make a prediction of the future GDP by considering the population size, location, and the reation of population and deaths due to air pollution? 
+
+# 7. Conclusion SMART Modeling
+
+# 8. Bibliography
 
 | Number                                                      | APA Citation                                                                                       |
 |-----------------------------------------------------------|--------------------------------------------------------------------------------------------|
