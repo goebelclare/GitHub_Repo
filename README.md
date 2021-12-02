@@ -51,7 +51,12 @@
 # <a name="final_project"></a>
 
 ## Final Project
+
 ### Timeline
 - [X] Topic Proposal - Nov 30
 - [] Presentation and Technical Analysis (Code) - Dec 7th
 - [] RMarkdown and HTML Final Report - Dec 12th
+
+### Topic Proposal
+* [Topic Proposal Google Doc](https://docs.google.com/document/d/1GICM9eaFOKcWz0VVfAzKjpEHWHDFOBg0cgpfGuXar6w/edit)
+
