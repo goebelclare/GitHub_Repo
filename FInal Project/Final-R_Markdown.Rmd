@@ -38,6 +38,8 @@ library(ggpubr) #install.packages("ggpubr")
 library(dplyr) #install.packages("dplyr")
 library(knitr)
 library(magrittr)
+library(factoextra) #install.packages("factoextra")
+library(cluster)
 loadPkg("faraway")
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "show", message = F)
@@ -309,7 +311,15 @@ kable(caption='Figure 15: Structure of final_df')
 
 Our dataset is finally ready to be analyzed.
 
-# 4. Main Research Question
+# 4. EDA Summary
+
+All necessary EDA was performed in the [Midterm Report](https://github.com/goebelclare/GitHub_Repo/blob/main/Midterm%20Project/Midterm-R_Markdown.html) where we looked at distributions for each key numerical variable in **Air Pollution Induced Deaths per 100k**, **Population**, **GDP per Capita**. We also looked into boxplots of these key numerical variables by **Regions** and **Sub Regions**. Interestingly, we observed that the same subregions that have low deaths caused by air pollution also have high GDP per capita comparatively.
+
+Next, we checked for outliers and found that Deaths.Air.Pollution.per.100k definitely do not need to have outliers removed as it only represents 0.7% of the dataset. gdp.per.capita have higher percentage of classified outliers at 13.5%, however, we felt that keeping the extreme datapoints of this feature was important in our research and analysis to capture the true disproportionate distribution of wealth and progress across countries in our world.
+
+Lastly, we explored a few choropleth maps to visually understand our dataset better.
+
+# 5. Main Research Question
 
 ## Do lower GDP countries have more deaths per 100k due to air pollution?
 
@@ -588,7 +598,7 @@ p-value~test6~ < $\alpha$~0.05~ = `r ttest6$p.value < 0.05`
 
 Conclusion of test6: p-value~test6~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_low_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
 
-# 5. Conclusion- Main Research
+# 5. Conclusion - Main Research
 
 ### Main Research Results
 From all of our tests, we can confirm that the means of deaths caused by air pollution are statistically significant when grouped by different levels of GDP per capita. This reinforces the idea that deaths caused by air pollution has a significant relationship with GDP per capita and the model can be quantified by *Equation 2*:
@@ -608,6 +618,12 @@ The strength of the correlation can be quantified by our R^2^ value of `r summar
 ### 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
 
 ### 3. Can we let the data tell us what type of groupings exist in our dataset? How consistent are they to our preconceived groupings such as region or developed vs developing countries? 
+
+We wanted to better understand what types of groupings exist within our dataset. More concretely, we wanted to put aside our preconceived presumptions about our dataset and create a *K-Means clustering model* and allow the the data to guide us to the possible clusters that may exist within our data.
+
+*K-Means clustering* is an unsupervised machine learning algorithm that is very useful to parse the dataset and identify *K* number of groups where observations within each group have high similarity. 
+
+
 
 ### 4. Can we make a prediction of the future GDP by considering the population size, location, and the reation of population and deaths due to air pollution? 
 
