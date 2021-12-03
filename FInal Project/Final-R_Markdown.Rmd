@@ -348,7 +348,7 @@ ggplot(final_df_sf, aes(gdp.per.capita, Deaths.Air.Pollution.per.100k)) +
   stat_regline_equation(label.y = 400, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 350, aes(label = ..rr.label..))
 ```
-: *Figure 44: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita, 1990 to 2017.*
+: *Figure 15: Linear model (fit1) on overall data, deaths due to air pollution per 100k vs GDP per capita, 1990 to 2017.*
 
 From the plot, we observed that there is indeed a negative correlation between deaths due to air pollution per 100k and GDP per capita. However, the strength of that relationship is not particularly strong as the R^2^ is really low at `r summary(fit1)$r.squared`. This means that only 29% of the variance experienced in deaths due to air pollution per 100k is caused by GDP per capita in a linear relationship.
 
@@ -373,7 +373,7 @@ ggplot(final_df_sf, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.per.100k))
   stat_regline_equation(label.y = 7, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 6, aes(label = ..rr.label..))
 ```
-: *Figure 50: Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship.*
+: *Figure 16: Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship.*
 
 Across the board, the strength of our linear relationship increases dramatically when first transforming both features by the log() function first. The new R^2^ is now `r summary(fit2)$r.squared` which means around 74% of the variance in our target feature can be explained by this mathematical relationship.
 
@@ -529,7 +529,7 @@ $$
 Deaths_{from~air~pollution|per~year|per~country} = 10^{7.38778 - 0.38952 * log(GDP per capita)} * 100,000 ~~~~~~~~~~~~~~~~ eqn (2)
 $$
 
-The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure 50.
+The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure 16.
 
 #6. Smart Questions for Further Modeling 
 
@@ -543,26 +543,111 @@ We wanted to better understand what types of groupings exist within our dataset.
 
 *K-Means clustering* is an unsupervised machine learning algorithm that is very useful to parse the dataset and identify *K* number of groups where observations within each group have high similarity. 
 
-First, let's select only the numerical values from our dataset.
+First, let's create and index label.
+
+```{r Q6.3.0, include=TRUE, echo=F}
+final_df_cluster <- final_df
+
+final_df_cluster$index <- paste(final_df_cluster$Country.x, final_df_cluster$AD, sep="")
+
+final_df_cluster <- final_df_cluster %>% select(index, Deaths.Air.Pollution.per.100k, gdp.per.capita)
+final_df_cluster = aggregate(final_df_cluster, by=list(index_=final_df_cluster$index), FUN=median)
+final_df_cluster <- subset(final_df_cluster, select = -c(index))
+
+final_df_cluster <- final_df_cluster[!duplicated(final_df_cluster$index_),]
+
+rownames(final_df_cluster) <- final_df_cluster$index_
+
+head(final_df_cluster)
+```
+Next, let's select only the numerical values from our dataset.
 
 ```{r Q6.3.1, include=TRUE, echo=F}
-final_df_numerical <- select_if(final_df, is.numeric)  
+final_df_numerical <- select_if(final_df_cluster, is.numeric)  
+
+#remove rows with missing values
+final_df_numerical <- na.omit(final_df_numerical)
 
 #str(final_df_numerical)
 data.frame(variable = names(final_df_numerical),
            class = sapply(final_df_numerical, typeof),
            first_values = sapply(final_df_numerical, function(x) paste0(head(x),  collapse = ", ")),
            row.names = NULL) %>% 
-kable(caption='Figure 6: Structure of final_df_numerical')
+kable(caption='Figure 6.3-1: Structure of final_df_numerical')
 ```
+
+#### Optimal *K* Clusters
+Let's try to find the optimal *K* value to achieve best clustering results. The 2 that we will try are using: 
+
+1. Elbow Method with Total Within Sum of Squares  
+2. Looking at the Gap Statistics
+
+*Elbow Method with Total Within Sum of Squares*
 
 ```{r Q6.3.2, include=TRUE, echo=F}
 final_df_numerical_scaled <- scale(final_df_numerical)
 fviz_nbclust(final_df_numerical_scaled, kmeans, method = "wss")
-
-#kmeans(final_df, centers, nstart)
 ```
-: *Figure 50: Fitting to a log(y) = (m)(log(x)) + b curve yields much stronger relationship.*
+: *Figure 6.3-2: Finding the optimal number of clusters using the Within Sum of Squares Method.*
+
+From the total Within Sum of Squares plot, we find that the optimal number of *K* seems to be at 3 using the Elbow method which identifies the *K* number where the Total Sum of Squares begins to level off, or where adding additional *K* clusters only improves our model marginally.
+
+*Looking at the Gap Statistics*
+
+```{r Q6.3.3, include=TRUE, echo=F}
+#calculate gap statistic based on number of clusters
+gap_stat <- clusGap(final_df_numerical_scaled,
+                    FUN = kmeans,
+                    nstart = 25,
+                    K.max = 10,
+                    B = 50)
+
+#plot number of clusters vs. gap statistic
+fviz_gap_stat(gap_stat)
+```
+: *Figure 6.3-3: Finding the optimal number of clusters using the Gap Statistic.*
+
+From the Gap Statistic plot, we find that the optimal number of *K* seems to be at 10 with the highest gap statistic, however, we observed using the Elbow method that the Total Sum of Squares begins to level off from 3 to 10. We will stick with using *K* = 3.
+
+#### Perform K-Means Clustering with Optimal *K*
+
+We perform a K-Means clustering analysis with a *K* of 3 and here are the results below.
+
+```{r Q6.3.4, include=TRUE, echo=F}
+#make this example reproducible
+set.seed(42)
+
+#perform k-means clustering with k = 4 clusters
+km <- kmeans(final_df_numerical_scaled, centers = 8, nstart = 25)
+
+#view results
+km$size
+km$withinss
+
+xkabledply(km$centers, title="Figure 6.3-4: K-Means Clustering Average Values per Cluster")
+```
+```{r Q6.3.5, include=TRUE, echo=F}
+#view results
+km_size = as.data.frame(km$size)
+colnames(km_size) <- c("Observations with Each Cluster")
+xkabledply(km_size, title="Figure 6.3-5: Number of Observations Within Each Cluster")
+```
+
+```{r Q6.3.6, include=TRUE, echo=F}
+#view results
+km_withinss= as.data.frame(km$withinss)
+colnames(km_withinss) <- c("Total Sum of Squares with Each Cluster")
+xkabledply(km_withinss, title="Figure 6.3-6: Total Sum of Squares Within Each Cluster")
+```
+
+
+```{r Q6.3.5, include=TRUE, echo=F}
+#plot results of final k-means model
+fviz_cluster(km, data = final_df_numerical_scaled)
+```
+: *Figure 3.6-7: Visualing K-Means Clustering Model.*
+
+Visualize countries within each group
 
 ### 4. Can we make a prediction of the future GDP by considering the population size, location, and the reation of population and deaths due to air pollution? 
 
