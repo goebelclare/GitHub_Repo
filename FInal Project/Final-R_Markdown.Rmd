@@ -539,7 +539,7 @@ fviz_nbclust(final_df_numerical_scaled, kmeans, method = "wss")+
 ```
 : *Figure 6.3-2: Finding the optimal number of clusters using the Within Sum of Squares Method.*
 
-From the total Within Sum of Squares plot, we find that the optimal number of *K* seems to be at 3 using the Elbow method which identifies the *K* number where the Total Sum of Squares begins to level off, or where adding additional *K* clusters only improves our model marginally.
+From the total Within Sum of Squares plot, we find that the optimal number of *K* seems to be at 4 using the Elbow method which identifies the *K* number where the Total Sum of Squares begins to level off, or where adding additional *K* clusters only improves our model marginally.
 
 *Looking at the Gap Statistics*
 
