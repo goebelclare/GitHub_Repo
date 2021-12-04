@@ -42,7 +42,7 @@ library(factoextra) #install.packages("factoextra")
 library(cluster)
 loadPkg("faraway")
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-knitr::opts_chunk$set(warning = F, results = "show", message = F)
+knitr::opts_chunk$set(warning = FALSE, results = "show", message = F)
 options(scientific=T, digits = 3) 
 options(scipen=999)
 # options(scipen=9, digits = 3) 
@@ -446,79 +446,25 @@ We used a two sample t-test for each and used an $\alpha$ value of 0.05.
 
 **Test 1**:
 
-```{r Q5.9.1, include=TRUE, echo=F}
-ttest1 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,2), data=final_df_sf, conf=0.95)
-ttest1
-```
-
-p-value~test1~: `r format(ttest1$p.value, scientific=T)`
-
-p-value~test1~ < $\alpha$~0.05~ = `r ttest1$p.value < 0.05`
-
 Conclusion of test1: p-value~test1~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ is equal to $\mu$~deaths_low_gdp~ and accept our alternative hypothesis.
 
 **Test 2**:
-
-```{r Q5.9.2, include=TRUE, echo=F}
-ttest2 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(2,3), data=final_df_sf, conf=0.95)
-ttest2
-```
-
-p-value~test2~: `r format(ttest2$p.value, scientific=T)`
-
-p-value~test2~ < $\alpha$~0.05~ = `r ttest2$p.value < 0.05`
 
 Conclusion of test2: p-value~test2~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_low_gdp~ is equal to $\mu$~deaths_medium_gdp~ and accept our alternative hypothesis.
 
 **Test 3**:
 
-```{r Q5.9.3, include=TRUE, echo=F}
-ttest3 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(3,4), data=final_df_sf, conf=0.95)
-ttest3
-```
-
-p-value~test3~: `r format(ttest3$p.value, scientific=T)`
-
-p-value~test3~ < $\alpha$~0.05~ = `r ttest3$p.value < 0.05`
-
 Conclusion of test3: p-value~test3~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_medium_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
 
 **Test 4**:
-
-```{r Q5.9.4, include=TRUE, echo=F}
-ttest4 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,4), data=final_df_sf, conf=0.95)
-ttest4
-```
-
-p-value~test4~: `r format(ttest4$p.value, scientific=T)`
-
-p-value~test4~ < $\alpha$~0.05~ = `r ttest4$p.value < 0.05`
 
 Conclusion of test4: p-value~test4~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
 
 **Test 5**:
 
-```{r Q5.9.5, include=TRUE, echo=F}
-ttest5 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(1,3), data=final_df_sf, conf=0.95)
-ttest5
-```
-
-p-value~test5~: `r format(ttest5$p.value, scientific=T)`
-
-p-value~test5~ < $\alpha$~0.05~ = `r ttest5$p.value < 0.05`
-
 Conclusion of test5: p-value~test5~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_lowest_gdp~ is equal to $\mu$~deaths_medium_gdp~ and accept our alternative hypothesis.
 
 **Test 6**:
-
-```{r Q5.9.6, include=TRUE, echo=F}
-ttest6 = t.test(Deaths.Air.Pollution.per.100k ~ qnt==c(2,4), data=final_df_sf, conf=0.95)
-ttest6
-```
-
-p-value~test6~: `r format(ttest6$p.value, scientific=T)`
-
-p-value~test6~ < $\alpha$~0.05~ = `r ttest6$p.value < 0.05`
 
 Conclusion of test6: p-value~test6~ is less than $\alpha$~0.05~, therefore we reject our null hypothesis that $\mu$~deaths_low_gdp~ is equal to $\mu$~deaths_high_gdp~ and accept our alternative hypothesis.
 
@@ -531,7 +477,7 @@ $$
 
 The strength of the correlation can be quantified by our R^2^ value of `r summary(fit2)$r.squared` from Figure 16.
 
-#6. Smart Questions for Further Modeling 
+# 6. Smart Questions for Further Modeling 
 
 ### 1. What are the impacts of population size on GDP and Deaths due to Air Pollution globally?
 
@@ -543,22 +489,23 @@ We wanted to better understand what types of groupings exist within our dataset.
 
 *K-Means clustering* is an unsupervised machine learning algorithm that is very useful to parse the dataset and identify *K* number of groups where observations within each group have high similarity. 
 
-First, let's create and index label.
+First, let's create an index label.
 
 ```{r Q6.3.0, include=TRUE, echo=F}
 final_df_cluster <- final_df
 
 final_df_cluster$index <- paste(final_df_cluster$Country.x, final_df_cluster$AD, sep="")
 
-final_df_cluster <- final_df_cluster %>% select(index, Deaths.Air.Pollution.per.100k, gdp.per.capita)
-final_df_cluster = aggregate(final_df_cluster, by=list(index_=final_df_cluster$index), FUN=median)
-final_df_cluster <- subset(final_df_cluster, select = -c(index))
+final_df_cluster <- final_df_cluster %>% select(index, Deaths.Air.Pollution.per.100k, gdp.per.capita, SDGRegion, Population.thousands)
+final_df_cluster = aggregate(final_df_cluster, by=list(index_=final_df_cluster$index, region=final_df_cluster$SDGRegion), FUN=mean)
+
+final_df_cluster <- subset(final_df_cluster, select = -c(index, SDGRegion))
 
 final_df_cluster <- final_df_cluster[!duplicated(final_df_cluster$index_),]
 
 rownames(final_df_cluster) <- final_df_cluster$index_
 
-head(final_df_cluster)
+#head(final_df_cluster)
 ```
 Next, let's select only the numerical values from our dataset.
 
@@ -586,7 +533,9 @@ Let's try to find the optimal *K* value to achieve best clustering results. The 
 
 ```{r Q6.3.2, include=TRUE, echo=F}
 final_df_numerical_scaled <- scale(final_df_numerical)
-fviz_nbclust(final_df_numerical_scaled, kmeans, method = "wss")
+fviz_nbclust(final_df_numerical_scaled, kmeans, method = "wss")+ 
+  geom_vline(xintercept = 4, linetype = 2)+ 
+  geom_vline(xintercept = 7, linetype = 2)
 ```
 : *Figure 6.3-2: Finding the optimal number of clusters using the Within Sum of Squares Method.*
 
@@ -603,33 +552,40 @@ gap_stat <- clusGap(final_df_numerical_scaled,
                     B = 50)
 
 #plot number of clusters vs. gap statistic
-fviz_gap_stat(gap_stat)
+fviz_gap_stat(gap_stat)+ 
+  geom_vline(xintercept = 4, linetype = 2)+ 
+  geom_vline(xintercept = 7, linetype = 2)
 ```
 : *Figure 6.3-3: Finding the optimal number of clusters using the Gap Statistic.*
 
-From the Gap Statistic plot, we find that the optimal number of *K* seems to be at 10 with the highest gap statistic, however, we observed using the Elbow method that the Total Sum of Squares begins to level off from 3 to 10. We will stick with using *K* = 3.
+From the Gap Statistic plot, we find that the optimal number of *K* seems to be at 10 with the highest gap statistic, however, we observed using the Elbow method that the Total Sum of Squares begins to level off from 4 to 10. We will stick with using *K* = 4.
 
 #### Perform K-Means Clustering with Optimal *K*
 
-We perform a K-Means clustering analysis with a *K* of 3 and here are the results below.
+We perform a K-Means clustering analysis with a *K* of 4 and here are the results below.
+
 
 ```{r Q6.3.4, include=TRUE, echo=F}
 #make this example reproducible
 set.seed(42)
 
 #perform k-means clustering with k = 4 clusters
-km <- kmeans(final_df_numerical_scaled, centers = 8, nstart = 25)
+km <- kmeans(final_df_numerical_scaled, centers = 4, nstart = 25)
 
-#view results
-km$size
-km$withinss
+km_centers = km$centers
+km_centers <- cbind(Cluster = rownames(km_centers), km_centers)
+rownames(km_centers) <- 1:nrow(km_centers)
 
-xkabledply(km$centers, title="Figure 6.3-4: K-Means Clustering Average Values per Cluster")
+xkabledply(km_centers, title="Figure 6.3-4: K-Means Clustering Average Values per Cluster")
 ```
 ```{r Q6.3.5, include=TRUE, echo=F}
 #view results
 km_size = as.data.frame(km$size)
 colnames(km_size) <- c("Observations with Each Cluster")
+
+km_size <- cbind(Cluster = rownames(km_size), km_size)
+rownames(km_size) <- 1:nrow(km_size)
+
 xkabledply(km_size, title="Figure 6.3-5: Number of Observations Within Each Cluster")
 ```
 
@@ -637,21 +593,54 @@ xkabledply(km_size, title="Figure 6.3-5: Number of Observations Within Each Clus
 #view results
 km_withinss= as.data.frame(km$withinss)
 colnames(km_withinss) <- c("Total Sum of Squares with Each Cluster")
+
+km_withinss <- cbind(Cluster = rownames(km_withinss), km_withinss)
+rownames(km_withinss) <- 1:nrow(km_withinss)
+
 xkabledply(km_withinss, title="Figure 6.3-6: Total Sum of Squares Within Each Cluster")
 ```
 
+Let's take a look at clusters visually. Interestingly, our model has grouped China and India into their own separate cluster, Cluster 2. Clusters 4, 3, and 1 can be roughly characterized by high GDP per captita nations, medium GDP per capita nations, and low GDP per capita nations'. 
 
-```{r Q6.3.5, include=TRUE, echo=F}
+```{r Q6.3.7, include=TRUE, echo=F}
 #plot results of final k-means model
 fviz_cluster(km, data = final_df_numerical_scaled)
 ```
 : *Figure 3.6-7: Visualing K-Means Clustering Model.*
 
-Visualize countries within each group
+Let's take a closer look at each cluster's breakdown of subregions more closely to determine what type of discrepancies we find between each cluster.
+
+```{r Q6.3.8, include=TRUE, echo=F}
+kmeans_basic_df <- data.frame(Cluster = km$cluster, final_df_cluster)
+
+kmeans_group_df = kmeans_basic_df %>%
+  group_by(Cluster, region) %>%
+  summarize(Percentage=n() / nrow(.) )
+
+# head of df
+#head(kmeans_group_df)
+
+# Stacked + percent
+ggplot(data = kmeans_group_df, aes(fill=region, y=Percentage, x=Cluster)) + 
+    geom_bar(position="fill", stat="identity")+
+  ggtitle("Frequency % of SDGRegion by Clusters") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+: *Figure 6.3-8: Frequency % of SDGRegion by Clusters.*
+
+Interestingly, we observe that Cluster 1 is disproportionately comprised of countries in Sub-Saharan Africa with large representations from Oceania, Eastern & South-Eastern Asia, and Central & Southern Asia. Cluster 2 is the one cluster comprised solely of China and India. Cluster 3 has a much larger proportion of countries from Europe, Northen America, and Northern Africa & Western Asia. Cluster 4 is similar to Cluster 3 except it does not have countries from Northern America and has more countries from Sub-Saharan Africa and Central & Southern Asia. 
 
 ### 4. Can we make a prediction of the future GDP by considering the population size, location, and the reation of population and deaths due to air pollution? 
 
 # 7. Conclusion SMART Modeling
+
+1.
+
+2.
+
+3. For the clustering, it is really interesting to observe that the main clusters 1, 3, and 4 have large discrepancies in regional representation while the data we used for clustering did not have any explicit geospatial components. This can mean that regionality, although may not be the cause, does have some correlation in determining the groups of factors in *GDP per Capita*, *Population*, and *Deaths due to Air Pollution per 100k*.
+
+4.
 
 # 8. Bibliography
 
@@ -663,4 +652,4 @@ Visualize countries within each group
 | 4                                      | Customizing ggplot2 color and fill scales. (2021, October 28). Retrieved from https://spielmanlab.github.io/introverse/articles/color_fill_scales.html           |
 | 5                                          | Logarithmic Functions. (2021, October 28). Retrieved from https://saylordotorg.github.io/text_intermediate-algebra/s10-03-logarithmic-functions-and-thei.html         |
 | 6                                          | K-Means Clustering in R. (2021, December 3). Retrieved from https://www.statology.org/k-means-clustering-in-r/         |
-: Figure 54: References
+: Figure 8.1: References
