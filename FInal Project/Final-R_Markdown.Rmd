@@ -483,6 +483,26 @@ The strength of the correlation can be quantified by our R^2^ value of `r summar
 
 ### 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
 
+```{r}
+final_df_table1 = table(final_df$Population.thousands, final_df$gdp.per.capita, final_df$Deaths.Air.Pollution.per.100k)
+xkabledply(final_df_table1, title = "Contingency tabel for Population vs GDP vs Deaths")
+```
+
+```{r}
+chisqres1 = chisq.test(final_df_table1)
+chisqres1
+```
+
+```{r}
+pop_gdp_deathsLogit <- glm( ~ titanic_orig$age + titanic_orig$pclass + titanic_orig$sex, data = final_df)
+```
+```{r}
+summary(pop_gdp_deathsLogit)
+```  
+```{r}
+xkabledply(pop_gdp_deathsLogit, title = paste("Logistic Regression :", format(formula(pop_gdp_deathsLogit)) ))
+```
+
 ### 3. Can we let the data tell us what type of groupings exist in our dataset? How consistent are they to our preconceived groupings such as region or developed vs developing countries? 
 
 We wanted to better understand what types of groupings exist within our dataset. More concretely, we wanted to put aside our preconceived presumptions about our dataset and create a *K-Means clustering model* and allow the the data to guide us to the possible clusters that may exist within our data.
