@@ -660,6 +660,195 @@ Interestingly, we observe that Cluster 1 is disproportionately comprised of coun
 
 ### 4. Can we make a prediction of the future GDP by considering the population size, location, and the reation of population and deaths due to air pollution? 
 
+For our major model we make a nice prediction for GDP through total deaths caused by air pollution, so as we can see that through the distribution of the data, there are strong relationships between total deaths caused by air pollution, deaths caused by indoor air pollution, and deaths caused by outdoor air pollution.
+
+
+```{r 7, include=TRUE}
+# select what we need
+# total
+ggplot(total3, aes(x=Year, y=air_pollution_total)) +
+    geom_bar(stat='identity', position='dodge')
+
+# indoor
+ggplot(total3, aes(x=Year, y=air_pollution_indoor)) +
+    geom_bar(stat='identity', position='dodge')
+# outdoor particulate
+ggplot(total3, aes(x=Year, y=air_pollution_outdoorP)) +
+    geom_bar(stat='identity', position='dodge')
+# outdoor ozone 
+ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
+    geom_bar(stat='identity', position='dodge')
+
+
+air_pollution_df_cleaned1 <- air_pollution_df
+```
+
+So it seems like we can also get a nice GDP prediction by using deaths caused by indoor air pollution and deaths caused by outdoor air pollution as the basis of the prediction model.
+
+```{r 7.1, include=TRUE}
+# make Entity and year factor
+air_pollution_df_cleaned1$Entity = factor(air_pollution_df_cleaned1$Entity)
+air_pollution_df_cleaned1$Code = factor(air_pollution_df_cleaned1$Code)
+air_pollution_df_cleaned1$Year = factor(air_pollution_df_cleaned1$Year)
+```
+```{r 7.2, include=TRUE}
+# polution
+air_pollution_df_cleaned1 <- rename(air_pollution_df_cleaned1, Country = Entity, ISO.alpha3.code = Code, Deaths.Air.Pollution.per.100k = Air.pollution..total...deaths.per.100.000. , Deaths.Air.Pollution.Indoor.per.100k = Indoor.air.pollution..deaths.per.100.000., Deaths.Air.Pollution.OutdoorP.per.100k = Outdoor.particulate.matter..deaths.per.100.000., Deaths.Air.Pollution.OutdoorO.per.100k = Outdoor.ozone.pollution..deaths.per.100.000.)
+
+
+# population
+#population_region_df_cleaned <- subset(population_region_df, select = -c(Notes, Type, Parent.code))
+
+#population_region_df_cleaned <- population_region_df_cleaned %>%
+#  pivot_longer(
+#    cols = starts_with("X"), 
+#    names_to = "Year", 
+ #   values_to = "Population.thousands", 
+  #  values_drop_na = TRUE
+#  )
+
+# population_region_df_cleaned$Year<-gsub("X","",as.character(population_region_df_cleaned$Year))
+# population_region_df_cleaned <- as.data.frame(apply(population_region_df_cleaned, 2, function(x) gsub("\\s+", "", x))) 
+
+# population_region_df_cleaned$Country = factor(population_region_df_cleaned$Country)
+# population_region_df_cleaned$SDGRegion = factor(population_region_df_cleaned$嚜燙DGRegion)
+# population_region_df_cleaned$Country.code = factor(population_region_df_cleaned$Country.code)
+# population_region_df_cleaned$SubRegion = factor(population_region_df_cleaned$SubRegion)
+# population_region_df_cleaned$Year = factor(population_region_df_cleaned$Year)
+# population_region_df_cleaned$Population.thousands = as.numeric(population_region_df_cleaned$Population.thousands)
+
+# population_region_df_cleaned <- rename(population_region_df_cleaned, M49.code = Country.code)
+
+# country_codes_df$M49.code = factor(country_codes_df$M49.code)
+# country_codes_df$Country.or.Area = factor(country_codes_df$嚜澧ountry.or.Area)
+# country_codes_df$ISO.alpha3.code = factor(country_codes_df$ISO.alpha3.code)
+# country_codes_df$ISO.alpha2.code = factor(country_codes_df$ISO.alpha2.code)
+
+# world$iso_a2 = factor(world$iso_a2)
+# 
+# world_df_cleaned <- subset(world, select = c(iso_a2, geom))
+
+# merge
+final_dfc <- merge(x = air_pollution_df_cleaned1, y = country_codes_df, by = 'ISO.alpha3.code')
+
+final_dfc <- merge(x = final_dfc, y = gdp_df_cleaned, by = c('ISO.alpha3.code', 'Year'))
+final_dfc <- merge(x = final_dfc, y = population_region_df_cleaned, by = c('M49.code', 'Year'))
+final_dfc <- merge(x = final_dfc, y = world_df_cleaned, by.x = 'ISO.alpha2.code', by.y = 'iso_a2', all.x = TRUE) #left join
+
+# Remove columns
+final_dfc <- subset(final_dfc, select = -c(Country.or.Area, Country.y, Country))
+
+# Calculate GDP per capita 
+final_dfc$gdp.per.capita <- final_dfc$GDP.USD / final_dfc$Population.thousands
+
+
+final_dfc$Deaths.Air.Pollution.Outdoor.Total.per.100k <- final_dfc$Deaths.Air.Pollution.OutdoorO.per.100k + final_dfc$Deaths.Air.Pollution.OutdoorP.per.100k
+```
+
+For the first model, we build a linear model using 'gdp.per.capita' and 'Deaths.Air.Pollution.Indoor.per.100k'.
+
+```{r 7.3, include=TRUE}
+
+final_df_sfc = st_as_sf(final_dfc)
+fit2c <- lm(gdp.per.capita ~Deaths.Air.Pollution.Indoor.per.100k, data=final_df_sfc)
+
+summary(fit2c)
+
+ggplot(final_df_sfc, aes(gdp.per.capita, Deaths.Air.Pollution.Indoor.per.100k)) +
+  geom_point() +
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 350, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 400, aes(label = ..rr.label..))
+
+```
+
+The R-squared value of this model is 0.22, which is a really bad result. So follow the steps in the major model building, now we put these two features into a log() and it should performed better.
+
+
+```{r 7.4, results =T, echo=F}
+fit2l <- lm(log(gdp.per.capita) ~log(Deaths.Air.Pollution.Indoor.per.100k), data=final_df_sfc)
+
+summary(fit2l)
+
+ggplot(final_df_sfc, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.Indoor.per.100k))) +
+  geom_point() +
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 12, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 10, aes(label = ..rr.label..))
+
+```
+
+As we can see, although it performed much better with a R-squared value 0.68 but this is still not good as the major model.
+
+Next we try the deaths caused by outdoor air pollution 'Deaths.Air.Pollution.Outdoor.Total.per.100k'.
+
+
+```{r 7.5, results =T, echo=F}
+fit3c <- lm(gdp.per.capita ~Deaths.Air.Pollution.Outdoor.Total.per.100k, data=final_df_sfc)
+
+summary(fit3c)
+
+ggplot(final_df_sfc, aes(gdp.per.capita, Deaths.Air.Pollution.Outdoor.Total.per.100k)) +
+  geom_point() +
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 150, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 200, aes(label = ..rr.label..))
+
+```
+
+The performence of this model is also bad, with a R-squared value 0.036, so we put the features in the log() too.
+
+
+```{r 7.6, results =T, echo=F}
+fit3l <- lm(log(gdp.per.capita) ~log(Deaths.Air.Pollution.Outdoor.Total.per.100k), data=final_df_sfc)
+summary(fit3l)
+ggplot(final_df_sfc, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.Outdoor.Total.per.100k))) +
+  geom_point() +
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 10, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 12, aes(label = ..rr.label..))
+
+```
+
+A surprised point is that although we put the variables into log(), the performance of model is still bad and even worse. The R-squared value of this model is 0.0039.
+
+Finally, we are going to test build a model base on both deaths caused by outdoor  and indoor air pollution. To check if this model also works bad.
+
+
+```{r 7.7, results =T, echo=F}
+fit4c <- lm(gdp.per.capita ~Deaths.Air.Pollution.Indoor.per.100k + Deaths.Air.Pollution.Outdoor.Total.per.100k, data=final_df_sfc)
+
+summary(fit4c)
+
+ggplot(final_df_sfc, aes(gdp.per.capita, Deaths.Air.Pollution.Outdoor.Total.per.100k+ Deaths.Air.Pollution.Indoor.per.100k)) +
+  geom_point() +
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 400, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 450, aes(label = ..rr.label..))
+```
+
+The R-squared value of this model is 0.29. 
+Next we put these variables into log().
+
+
+```{r 7.8, results =T, echo=F}
+
+fit4l <- lm(log(gdp.per.capita) ~log(Deaths.Air.Pollution.Outdoor.Total.per.100k)+log(Deaths.Air.Pollution.Indoor.per.100k), data=final_df_sfc)
+
+summary(fit4l)
+
+ggplot(final_df_sfc, aes(log(gdp.per.capita), log(Deaths.Air.Pollution.Outdoor.Total.per.100k)+ log(Deaths.Air.Pollution.Indoor.per.100k))) +
+  geom_point() +
+  geom_smooth(method='lm', se=FALSE) +
+  stat_regline_equation(label.y = 25, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 30, aes(label = ..rr.label..))
+```
+
+For this model the R-squared value is 0.69. This is actually not a bad result but when comparing to the major model using total deaths caused by air pollution, 0.69 is not good enough for predicting GDP. 
+
+We can get the conclusion that we can not get a nice GDP prediction by using deaths caused by indoor air pollution and deaths caused by outdoor air pollution as the basis of the prediction model.
+
+
 # 7. Conclusion SMART Modeling
 
 1.
@@ -668,7 +857,7 @@ Interestingly, we observe that Cluster 1 is disproportionately comprised of coun
 
 3. For the clustering, it is really interesting to observe that the main clusters 1, 3, and 4 have large discrepancies in regional representation while the data we used for clustering did not have any explicit geospatial components. This can mean that regionality, although may not be the cause, does have some correlation in determining the groups of factors in *GDP per Capita*, *Population*, and *Deaths due to Air Pollution per 100k*.
 
-4.
+4. Although death caused by indoor air pollution and outdoor air pollution seems to have a strong relationship with total death caused by air pollution, but we can’t accurately predict GDP through death caused by indoor and outdoor air pollution.
 
 # 8. Bibliography
 
