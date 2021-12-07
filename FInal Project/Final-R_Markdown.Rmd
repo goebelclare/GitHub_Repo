@@ -511,6 +511,177 @@ summary(pop_gdp_deathsLogit)
 
 ### 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
 
+
+Here we use decision tree classification algorithm to predict which countries in Sub-Saharan Africa are more likely to have lower or higher deaths per 100,000 due to air pollution. We use predictors -GDP per capita and population size in thousands. 
+
+As we learned this semester, a qualitative response warrants the utilization of a classification tree. This helps us predict you predict that each observation belongs to the most commonly occurring class of training observations in the region to which it belongs.
+
+Below, we subset our data to only relect Sub-Saharan countries, and then we create a new variable `deaths` that recategorizes existing variable  `Deaths.Air.Pollution.per.100k` into "high" or "low" based on the median deaths due to air pollution from 1990 to 2017. 
+
+Since our median is 143. 5, we set `deaths` = "high" if `Deaths.Air.Pollution.per.100k` is greater than or equal to 143, and `deaths` = "low" if `Deaths.Air.Pollution.per.100k` is less than 143. Lastly, we transform the `deaths` variable into a factor variable
+
+```{r Q2, include=TRUE, echo=F}
+loadPkg("ISLR")
+loadPkg("tree")
+loadPkg("caTools")
+loadPkg("ggplot2")
+loadPkg("rpart.plot")
+loadPkg("rpart")
+loadPkg("party")
+loadPkg("dplyr")
+loadPkg("magrittr")
+loadPkg("rattle")
+loadPkg("caTools")
+library(caret)
+
+
+options(scipen=999)
+set.seed(42)
+options(digits=10)
+
+##Subset the data to only reflect countries in Sub-Saharan 
+names(final_df)
+final_df_africa <-subset(final_df,SDGRegion == "SUB-SAHARANAFRICA")
+#Remove NA values
+final_df_africa <- na.omit(final_df_africa)
+
+##Look at data
+head(final_df_africa)
+str(final_df_africa)
+summary(final_df_africa$Deaths.Air.Pollution.per.100k)
+
+#Deaths variable
+final_df_africa$deaths <- ifelse(final_df_africa$Deaths.Air.Pollution.per.100k<143, 
+                                 "low",
+                                 "high")
+final_df_africa$deaths <- as.factor(final_df_africa$deaths)
+```
+
+#### Train the Model
+
+The next thing we do is create a train and test set, this is done to train our model (train set) and test the prediction (test set). As taught in class, we split the data 80/20, 80% to train the model (991 observations), 20% to make predictions (248 observations). We verified this randomization process and see that low deaths in both sets are about 49%.
+
+Next we build and train our model as `deaths ~ gdp.per.capita + Population.thousands` and plot the tree. It is important to note that the rpart() function we employ uses the Gini impurity measure to split the nodes. The Gini Impurity measure is 
+
+```{r Q2.1, include=TRUE, echo=F}
+
+#Split 
+split = sample.split(final_df_africa$deaths, SplitRatio = 0.80)
+train = subset(final_df_africa, split == TRUE)
+test = subset(final_df_africa, split == FALSE)
+
+#Check proportions
+trainprop <- prop.table(table(train$deaths))
+print(trainprop)
+testprop<-prop.table(table(test$deaths))
+print(testprop)
+
+#Model
+afit <- rpart(deaths ~ gdp.per.capita + Population.thousands,data=train, method="class", control = list(maxdepth = 4))
+# plot tree 
+rpart.plot(afit, extra = 106, main="Classification Tree for Deaths due to Air Pollution in Sub-Sahara Africa ")
+summary(afit) # detailed summary of splits
+printcp(afit) # display the results 
+plotcp(afit)
+
+```
+
+As shown above, our decision tree shows at the root node that 50% of countries in Sub-Saharan Africa have high deaths due to air pollution. Then, we see that 68% of these countries have GDP per capita that is less than $1,065 with probability of high deaths due to air pollution (32%). Then we see that out of these countries, 44% has gdp per capita NOT greater than $348 with probability of high deaths due to air pollution- 45% . Lastly, we see that 37% of the countries have population less than about 26,000,000 and GDP per capita greater than $348 and less than $1,065 -  with probability of high deaths due to air pollution at 37%.
+
+```{r, include = T}
+#Tree Plot
+post(afit, file = "afit.ps", title = "Classification Tree for Deaths due to Air Pollution in Sub-Sahara Africa")
+```
+
+#### Predict
+
+Here, we use the above test tree to predict it on our test set. We are predicting which countries are more likely to have higher deaths due to air pollution. 
+
+```{r Q2.2, include=TRUE, echo=F}
+#test
+loadPkg("caret") 
+
+apred <- predict(afit,test,type="class")
+summary(apred) # detailed summary of splits
+
+```
+
+
+#### Evaluation
+
+The next thing we do is evaluate our model's performance using the confusion matrix, and from that, the accuracy test.
+
+*As we all know,*
+*TP: (True Positive) means predicted values correctly predicted as positive*
+*FP: (False Positive) means predicted values incorrectly predicted an actual positive*
+*FN: (False Negative) means positive values predicted as negative*
+*TN: (True Negative) means predicted values correctly predicted as an actual negative*
+
+
+
+```{r Q2.3, include=T}
+#Evaluate
+
+# Confusion matrix and Accuracy test
+cm<-with(test, table(apred, deaths))
+print(cm)
+```
+```{r CM, include=T}
+xkabledply(cm, "confusion matrix")
+```
+```{r AT, include=T}
+accuracy <- sum(diag(cm)) / sum(cm)
+print(paste('Accuracy for test', accuracy))
+
+```
+
+So we see above that our model accurately predicted 110 countries with high deaths due to air pollution (True negative) and 74 countries with low deaths due to air pollution (True positive), however it misclassified 49 countries for the former (False positive) and 15 countries for the latter(True negative).
+
+The overall accuracy is `74`%.  Here the accuracy-test from the confusion matrix is calculated and is found to be 0.741935 Hence this model is found to predict with an accuracy of 74 %.
+
+Cross-Entropy: A third alternative, which is similar to the Gini Index, is known as the Cross-Entropy or Deviance:
+
+
+#### Prune the tree
+
+The last thing we want to do here is prune our tree, this will minimize overfitting the data by minimizing the cross-validated error. what is overfitting? what is cp?
+
+```{r prune}
+#prune the tree 
+pafit <- prune(afit, cp = afit$cptable[2,"CP"])
+printcp(pafit)
+#cp is cost complexity and has to be minimum.
+
+# plot the pruned tree 
+fancyRpartPlot(pafit,main="Pruned Classification Tree for Deaths due to Air Polution")
+
+```
+
+```{r Q2.4, include=TRUE, echo=F}
+#test 2
+papred <- predict(pafit,test,type="class")
+summary(papred) # detailed summary of splits
+
+# Accuracy test
+cm2 <-with(test, table(papred, deaths))
+accuracy2 <- sum(diag(cm2)) / sum(cm2)
+print(paste('Accuracy for test', accuracy))
+
+```
+
+As shown above, accuracy is now `74`%. Pruning had little effect even though the tree is now simpler. So, we have a model that can predict high deaths due to air pollution with 74% accuracy.
+
+
+```{r,}
+# create attractive postcript plot of tree 
+post(afit, file = "afit.ps", title = "Pruned Classification Tree for Deaths due to Air Pollution in Sub-Sahara Africa")
+
+```
+
+#### How can we improve this model in the future?
+Instead of of an individual tree, we can employ other techniques such as bagging, random forests, and boosting, which will significantly improve our predictive performance!
+
+
 ### 3. Can we let the data tell us what type of groupings exist in our dataset? How consistent are they to our preconceived groupings such as region or developed vs developing countries? 
 
 We wanted to better understand what types of groupings exist within our dataset. More concretely, we wanted to put aside our preconceived presumptions about our dataset and create a *K-Means clustering model* and allow the the data to guide us to the possible clusters that may exist within our data.
@@ -853,7 +1024,7 @@ We can get the conclusion that we can not get a nice GDP prediction by using dea
 
 1. For the Logit Regression, we observed *small p-values indicating that all the coefficients are found to be significant*. GDP has a positive effect on population, but deaths due to air pollution have a negative effect on population. 
 
-2. As shown above, post-pruning, our *accuracy is still 74%*. So, pruning had little effect although the tree has become simpler. Therefore, we have a model that can *predict high deaths due to air pollution with reasonable (74%)  accuracy*.
+2. As shown above, post-pruning, our *accuracy is still 74%*. So, pruning had little effect even though the tree is now much simpler. Therefore, we have a model that can *predict high deaths due to air pollution with 74%  accuracy*.
 
 3. For the clustering, it is really interesting to observe that the main clusters 1, 3, and 4 have large discrepancies in regional representation while the data we used for clustering did not have any explicit geospatial components. This can mean that regionality, although may not be the cause, does have some correlation in determining the groups of factors in *GDP per Capita*, *Population*, and *Deaths due to Air Pollution per 100k*.
 
@@ -869,4 +1040,5 @@ We can get the conclusion that we can not get a nice GDP prediction by using dea
 | 4                                      | Customizing ggplot2 color and fill scales. (2021, October 28). Retrieved from https://spielmanlab.github.io/introverse/articles/color_fill_scales.html           |
 | 5                                          | Logarithmic Functions. (2021, October 28). Retrieved from https://saylordotorg.github.io/text_intermediate-algebra/s10-03-logarithmic-functions-and-thei.html         |
 | 6                                          | K-Means Clustering in R. (2021, December 3). Retrieved from https://www.statology.org/k-means-clustering-in-r/         |
+| 7                                          | Confusion Matrix in Machine Learning. (2021, December 3). Retrieved from https://www.guru99.com/confusion-matrix-machine-learning-example.html         |
 : Figure 8.1: References
