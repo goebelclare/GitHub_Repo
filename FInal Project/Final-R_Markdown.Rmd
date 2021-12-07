@@ -40,7 +40,19 @@ library(knitr)
 library(magrittr)
 library(factoextra) #install.packages("factoextra")
 library(cluster)
+library(caret)
 loadPkg("faraway")
+loadPkg("ISLR")
+loadPkg("tree")
+loadPkg("caTools")
+loadPkg("ggplot2")
+loadPkg("rpart.plot")
+loadPkg("rpart")
+loadPkg("party")
+loadPkg("dplyr")
+loadPkg("magrittr")
+loadPkg("rattle")
+loadPkg("caTools")
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = FALSE, results = "show", message = F)
 options(scientific=T, digits = 3) 
@@ -71,6 +83,9 @@ install.packages("ggpubr")
 install.packages("dplyr")
 install.packages("knitr")
 install.packages("magrittr")
+install.packages("factoextra")
+install.packages("cluster")
+install.packages("caret")
 ```
 
 # 2. Data Sources and Data Wrangling
@@ -329,9 +344,9 @@ Lastly, we explored a few choropleth maps to visually understand our dataset bet
 
 We intentionally did not include any figures from EDA in this final report to preserve space. Please look at the [Midterm Report](https://github.com/goebelclare/GitHub_Repo/blob/main/Midterm%20Project/Midterm-R_Markdown.html) for details on our entire EDA process.
 
-# 5. Main Research Question
+# 5. Main Midterm Research Question
 
-Below is a rehash of our main research question from the Midterm report and we felt that the findings from this model was important enough to warrant inclusion in this final report as well.
+Below is a rehash of our main research question from the Midterm report and we felt that the findings from this model was important enough to warrant inclusion in this final report as well since some of our new SMART questions are building on the work from this analysis.
 
 ## Do lower GDP countries have more deaths per 100k due to air pollution?
 
@@ -479,7 +494,7 @@ The strength of the correlation can be quantified by our R^2^ value of `r summar
 
 # 6. Smart Questions for Further Modeling 
 
-### 1. What are the impacts of population size from GDP and Deaths due to Air Pollution globally?
+## 1. What are the impacts of population size from GDP and Deaths due to Air Pollution globally?
 
 1. Categorizing GDP into low (0), medium(1) and high(2)
 
@@ -509,32 +524,18 @@ pop_gdp_deathsLogit <- glm(population_grouping ~ groupings_pop$gdp.per.capita + 
 summary(pop_gdp_deathsLogit)
 ```  
 
-### 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
+## 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
 
 
 Here we use decision tree classification algorithm to predict which countries in Sub-Saharan Africa are more likely to have lower or higher deaths per 100,000 due to air pollution. We use predictors -GDP per capita and population size in thousands. 
 
 As we learned this semester, a qualitative response warrants the utilization of a classification tree. This helps us predict you predict that each observation belongs to the most commonly occurring class of training observations in the region to which it belongs.
 
-Below, we subset our data to only relect Sub-Saharan countries, and then we create a new variable `deaths` that recategorizes existing variable  `Deaths.Air.Pollution.per.100k` into "high" or "low" based on the median deaths due to air pollution from 1990 to 2017. 
+Below, we subset our data to only relect Sub-Saharan countries, and then we create a new variable `deaths` that recategorizes existing variable  `Deaths.Air.Pollution.per.100k` into `"high"` or `"low"` based on the median deaths due to air pollution from 1990 to 2017. 
 
 Since our median is 143. 5, we set `deaths` = "high" if `Deaths.Air.Pollution.per.100k` is greater than or equal to 143, and `deaths` = "low" if `Deaths.Air.Pollution.per.100k` is less than 143. Lastly, we transform the `deaths` variable into a factor variable
 
 ```{r Q2, include=TRUE, echo=F}
-loadPkg("ISLR")
-loadPkg("tree")
-loadPkg("caTools")
-loadPkg("ggplot2")
-loadPkg("rpart.plot")
-loadPkg("rpart")
-loadPkg("party")
-loadPkg("dplyr")
-loadPkg("magrittr")
-loadPkg("rattle")
-loadPkg("caTools")
-library(caret)
-
-
 options(scipen=999)
 set.seed(42)
 options(digits=10)
@@ -559,9 +560,8 @@ final_df_africa$deaths <- as.factor(final_df_africa$deaths)
 
 #### Train the Model
 
-The next thing we do is create a train and test set, this is done to train our model (train set) and test the prediction (test set). As taught in class, we split the data 80/20, 80% to train the model (991 observations), 20% to make predictions (248 observations). We verified this randomization process and see that low deaths in both sets are about 49%.
-
-Next we build and train our model as `deaths ~ gdp.per.capita + Population.thousands` and plot the tree. It is important to note that the rpart() function we employ uses the Gini impurity measure to split the nodes. The Gini Impurity measure is 
+The next thing we do is create a train and test set, this is done to train our model (train set) and test the prediction (test set). As taught in class, we split the data 80/20, 80% to train the model (991 observations), 20% to make predictions (248 observations). We verified this randomization process and see that low deaths in both sets are about 49% as shown below
+where we show the train and test breakdown of high vs low.
 
 ```{r Q2.1, include=TRUE, echo=F}
 
@@ -575,7 +575,11 @@ trainprop <- prop.table(table(train$deaths))
 print(trainprop)
 testprop<-prop.table(table(test$deaths))
 print(testprop)
+```
 
+Next we build and train our model as `deaths ~ gdp.per.capita + Population.thousands` and plot the tree. It is important to note that the `rpart()` function we employ uses the Gini impurity measure to split the nodes. The Gini Impurity measures which features has least likelihood of misclassification. 
+
+```{r Q2.1.2, include=TRUE, echo=F}
 #Model
 afit <- rpart(deaths ~ gdp.per.capita + Population.thousands,data=train, method="class", control = list(maxdepth = 4))
 # plot tree 
@@ -586,7 +590,7 @@ plotcp(afit)
 
 ```
 
-As shown above, our decision tree shows at the root node that 50% of countries in Sub-Saharan Africa have high deaths due to air pollution. Then, we see that 68% of these countries have GDP per capita that is less than $1,065 with probability of high deaths due to air pollution (32%). Then we see that out of these countries, 44% has gdp per capita NOT greater than $348 with probability of high deaths due to air pollution- 45% . Lastly, we see that 37% of the countries have population less than about 26,000,000 and GDP per capita greater than $348 and less than $1,065 -  with probability of high deaths due to air pollution at 37%.
+As shown above, our decision tree shows at the root node that 50% of countries in Sub-Saharan Africa have high deaths due to air pollution. Then, we see that 68% of these countries have GDP per capita that is less than $1,065 with probability of high deaths due to air pollution (32%). Then we see that out of these countries, 44% has gdp per capita NOT greater than $348 with probability of high deaths due to air pollution- 24% . Lastly, we see that 37% of the countries have population less than about 26,000,000 and GDP per capita greater than $348 and less than $1,065 -  with probability of high deaths due to air pollution at 37%.
 
 ```{r, include = T}
 #Tree Plot
@@ -637,14 +641,14 @@ print(paste('Accuracy for test', accuracy))
 
 So we see above that our model accurately predicted 110 countries with high deaths due to air pollution (True negative) and 74 countries with low deaths due to air pollution (True positive), however it misclassified 49 countries for the former (False positive) and 15 countries for the latter(True negative).
 
-The overall accuracy is `74`%.  Here the accuracy-test from the confusion matrix is calculated and is found to be 0.741935 Hence this model is found to predict with an accuracy of 74 %.
+The overall accuracy is `74%`.  Here the accuracy-test from the confusion matrix is calculated and is found to be 0.741935 Hence this model is found to predict with an accuracy of `74%`.
 
 Cross-Entropy: A third alternative, which is similar to the Gini Index, is known as the Cross-Entropy or Deviance:
 
 
 #### Prune the tree
 
-The last thing we want to do here is prune our tree, this will minimize overfitting the data by minimizing the cross-validated error. what is overfitting? what is cp?
+The last thing we want to do here is prune our tree, this will minimize overfitting the data by minimizing the cross-validated error.
 
 ```{r prune}
 #prune the tree 
@@ -669,7 +673,7 @@ print(paste('Accuracy for test', accuracy))
 
 ```
 
-As shown above, accuracy is now `74`%. Pruning had little effect even though the tree is now simpler. So, we have a model that can predict high deaths due to air pollution with 74% accuracy.
+As shown above, accuracy is now `74%`. Pruning had little effect even though the tree is now simpler. So, we have a model that can predict high deaths due to air pollution with `74%` accuracy.
 
 
 ```{r,}
@@ -682,13 +686,13 @@ post(afit, file = "afit.ps", title = "Pruned Classification Tree for Deaths due 
 Instead of of an individual tree, we can employ other techniques such as bagging, random forests, and boosting, which will significantly improve our predictive performance!
 
 
-### 3. Can we let the data tell us what type of groupings exist in our dataset? How consistent are they to our preconceived groupings such as region or developed vs developing countries? 
+## 3. Can we let the data tell us what type of groupings exist in our dataset? How consistent are they to our preconceived groupings such as region or developed vs developing countries? 
 
-We wanted to better understand what types of groupings exist within our dataset. More concretely, we wanted to put aside our preconceived presumptions about our dataset and create a *K-Means clustering model* and allow the the data to guide us to the possible clusters that may exist within our data.
+We wanted to better understand what types of groupings exist within our dataset. More concretely, we wanted to put aside our preconceived presumptions about our dataset and create a **K-Means clustering model** and allow the the data to guide us to the possible clusters that may exist within our data.
 
-*K-Means clustering* is an unsupervised machine learning algorithm that is very useful to parse the dataset and identify *K* number of groups where observations within each group have high similarity. 
+**K-Means clustering** is an unsupervised machine learning algorithm that is very useful to parse the dataset and identify **K** number of groups where observations within each group have high similarity, all without the need of labeled data.
 
-First, let's create an index label to allow for clustering.
+To begin our process, let's first create an index label to allow mapping each datapoint back to a country after clustering.
 
 ```{r Q6.3.0, include=TRUE, echo=F}
 final_df_cluster <- final_df
@@ -708,7 +712,7 @@ rownames(final_df_cluster) <- final_df_cluster$index_
 
 knitr::kable(head(final_df_cluster), format = "html", caption="Figure 6.3-0: Head of final_df_cluster")
 ```
-Next, let's select only the numerical values from our dataset.
+Next, let's select only the numerical values from our dataset to use in clustering.
 
 ```{r Q6.3.1, include=TRUE, echo=F}
 final_df_numerical <- select_if(final_df_cluster, is.numeric)  
@@ -724,13 +728,17 @@ data.frame(variable = names(final_df_numerical),
 kable(caption='Figure 6.3-1: Structure of final_df_numerical')
 ```
 
-#### Optimal *K* Clusters
-Let's try to find the optimal *K* value to achieve best clustering results. The 2 that we will try are using: 
+#### Optimal **K** Clusters
+The key hyperparameter that we will need to optimize for is the optimal **K** value to achieve best results of low model complexity but still capturing relevant clusters. 
+
+The 2 methods to find optimal **K** is the following: 
 
 1. Elbow Method with Total Within Sum of Squares  
 2. Looking at the Gap Statistics
 
-*Elbow Method with Total Within Sum of Squares*
+We will try both. Let's begin with the first method.
+
+**Elbow Method with Total Within Sum of Squares**
 
 ```{r Q6.3.2, include=TRUE, echo=F}
 final_df_numerical_scaled <- scale(final_df_numerical)
@@ -740,9 +748,9 @@ fviz_nbclust(final_df_numerical_scaled, kmeans, method = "wss")+
 ```
 : *Figure 6.3-2: Finding the optimal number of clusters using the Within Sum of Squares Method.*
 
-From the total Within Sum of Squares plot, we find that the optimal number of *K* seems to be at 4 using the Elbow method which identifies the *K* number where the Total Sum of Squares begins to level off, or where adding additional *K* clusters only improves our model marginally.
+From the total Within Sum of Squares plot, we find that the optimal number of **K** seems to be at 4 using the Elbow method which identifies the **K** number where the Total Sum of Squares begins to level off, or where adding additional **K** clusters only improves our model marginally.
 
-*Looking at the Gap Statistics*
+**Looking at the Gap Statistics**
 
 ```{r Q6.3.3, include=TRUE, echo=F}
 #calculate gap statistic based on number of clusters
@@ -759,11 +767,11 @@ fviz_gap_stat(gap_stat)+
 ```
 : *Figure 6.3-3: Finding the optimal number of clusters using the Gap Statistic.*
 
-From the Gap Statistic plot, we find that the optimal number of *K* seems to be at 10 with the highest gap statistic, however, we observed using the Elbow method that the Total Sum of Squares begins to level off from 4 to 10. We will stick with using *K* = 4.
+From the Gap Statistic plot, we find that the optimal number of **K** seems to be at 10 with the highest gap statistic, however, we observed using the Elbow method that the Total Sum of Squares begins to level off from 4 to 10. We will stick with using **K** = 4.
 
-#### Perform K-Means Clustering with Optimal *K*
+#### Perform K-Means Clustering with Optimal **K**
 
-We perform a K-Means clustering analysis with a *K* of 4 and here are the results below.
+We perform a K-Means clustering analysis with a **K** of 4 and here are the results below.
 
 
 ```{r Q6.3.4, include=TRUE, echo=F}
@@ -831,75 +839,26 @@ ggplot(data = kmeans_group_df, aes(fill=region, y=Percentage, x=Cluster)) +
 
 Interestingly, we observe that Cluster 1 is disproportionately comprised of countries in Sub-Saharan Africa with large representations from Oceania, Eastern & South-Eastern Asia, and Central & Southern Asia. Cluster 2 is the one cluster comprised solely of China and India. Cluster 3 has a much larger proportion of countries from Europe, Northen America, and Northern Africa & Western Asia. Cluster 4 is similar to Cluster 3 except it does not have countries from Northern America and has more countries from Sub-Saharan Africa and Central & Southern Asia. 
 
-### 4. Can we make a prediction of the future GDP by considering the population size, location, and the reation of population and deaths due to air pollution? 
+## 4. Can we make a prediction of the future GDP by considering the population size, location, and the reation of population and deaths due to air pollution? 
 
 For our major model we make a nice prediction for GDP through total deaths caused by air pollution, so as we can see that through the distribution of the data, there are strong relationships between total deaths caused by air pollution, deaths caused by indoor air pollution, and deaths caused by outdoor air pollution.
 
 
-```{r 7, include=TRUE}
-# select what we need
-# total
-#ggplot(total3, aes(x=Year, y=air_pollution_total)) +
-#    geom_bar(stat='identity', position='dodge')
-
-# indoor
-#ggplot(total3, aes(x=Year, y=air_pollution_indoor)) +
-#    geom_bar(stat='identity', position='dodge')
-# outdoor particulate
-#ggplot(total3, aes(x=Year, y=air_pollution_outdoorP)) +
-#    geom_bar(stat='identity', position='dodge')
-# outdoor ozone 
-#ggplot(total3, aes(x=Year, y=air_pollution_outdoorO)) +
-#    geom_bar(stat='identity', position='dodge')
-
-
+```{r 7, include=TRUE, echo=F}
 air_pollution_df_cleaned1 <- air_pollution_df
 ```
 
 So it seems like we can also get a nice GDP prediction by using deaths caused by indoor air pollution and deaths caused by outdoor air pollution as the basis of the prediction model.
 
-```{r 7.1, include=TRUE}
+```{r 7.1, include=TRUE, echo=F}
 # make Entity and year factor
 air_pollution_df_cleaned1$Entity = factor(air_pollution_df_cleaned1$Entity)
 air_pollution_df_cleaned1$Code = factor(air_pollution_df_cleaned1$Code)
 air_pollution_df_cleaned1$Year = factor(air_pollution_df_cleaned1$Year)
 ```
-```{r 7.2, include=TRUE}
+```{r 7.2, include=TRUE, echo=F}
 # polution
 air_pollution_df_cleaned1 <- rename(air_pollution_df_cleaned1, Country = Entity, ISO.alpha3.code = Code, Deaths.Air.Pollution.per.100k = Air.pollution..total...deaths.per.100.000. , Deaths.Air.Pollution.Indoor.per.100k = Indoor.air.pollution..deaths.per.100.000., Deaths.Air.Pollution.OutdoorP.per.100k = Outdoor.particulate.matter..deaths.per.100.000., Deaths.Air.Pollution.OutdoorO.per.100k = Outdoor.ozone.pollution..deaths.per.100.000.)
-
-
-# population
-#population_region_df_cleaned <- subset(population_region_df, select = -c(Notes, Type, Parent.code))
-
-#population_region_df_cleaned <- population_region_df_cleaned %>%
-#  pivot_longer(
-#    cols = starts_with("X"), 
-#    names_to = "Year", 
- #   values_to = "Population.thousands", 
-  #  values_drop_na = TRUE
-#  )
-
-# population_region_df_cleaned$Year<-gsub("X","",as.character(population_region_df_cleaned$Year))
-# population_region_df_cleaned <- as.data.frame(apply(population_region_df_cleaned, 2, function(x) gsub("\\s+", "", x))) 
-
-# population_region_df_cleaned$Country = factor(population_region_df_cleaned$Country)
-# population_region_df_cleaned$SDGRegion = factor(population_region_df_cleaned$嚜燙DGRegion)
-# population_region_df_cleaned$Country.code = factor(population_region_df_cleaned$Country.code)
-# population_region_df_cleaned$SubRegion = factor(population_region_df_cleaned$SubRegion)
-# population_region_df_cleaned$Year = factor(population_region_df_cleaned$Year)
-# population_region_df_cleaned$Population.thousands = as.numeric(population_region_df_cleaned$Population.thousands)
-
-# population_region_df_cleaned <- rename(population_region_df_cleaned, M49.code = Country.code)
-
-# country_codes_df$M49.code = factor(country_codes_df$M49.code)
-# country_codes_df$Country.or.Area = factor(country_codes_df$嚜澧ountry.or.Area)
-# country_codes_df$ISO.alpha3.code = factor(country_codes_df$ISO.alpha3.code)
-# country_codes_df$ISO.alpha2.code = factor(country_codes_df$ISO.alpha2.code)
-
-# world$iso_a2 = factor(world$iso_a2)
-# 
-# world_df_cleaned <- subset(world, select = c(iso_a2, geom))
 
 # merge
 final_dfc <- merge(x = air_pollution_df_cleaned1, y = country_codes_df, by = 'ISO.alpha3.code')
@@ -914,13 +873,12 @@ final_dfc <- subset(final_dfc, select = -c(Country.or.Area, Country.y, Country))
 # Calculate GDP per capita 
 final_dfc$gdp.per.capita <- final_dfc$GDP.USD / final_dfc$Population.thousands
 
-
 final_dfc$Deaths.Air.Pollution.Outdoor.Total.per.100k <- final_dfc$Deaths.Air.Pollution.OutdoorO.per.100k + final_dfc$Deaths.Air.Pollution.OutdoorP.per.100k
 ```
 
 For the first model, we build a linear model using 'gdp.per.capita' and 'Deaths.Air.Pollution.Indoor.per.100k'.
 
-```{r 7.3, include=TRUE}
+```{r 7.3, include=TRUE, echo=F}
 
 final_df_sfc = st_as_sf(final_dfc)
 fit2c <- lm(gdp.per.capita ~Deaths.Air.Pollution.Indoor.per.100k, data=final_df_sfc)
@@ -1028,15 +986,15 @@ For this model the R-squared value is 0.69. This is actually not a bad result bu
 We can get the conclusion that we can not get a nice GDP prediction by using deaths caused by indoor air pollution and deaths caused by outdoor air pollution as the basis of the prediction model.
 
 
-# 7. Conclusion SMART Modeling
+# 7. Conclusion of SMART Modeling Questions
 
-1. For the Logit Regression, we observed *small p-values indicating that all the coefficients are found to be significant*. GDP has a positive effect on population, but deaths due to air pollution have a negative effect on population. 
+1. For the Logit Regression, we observed **small p-values indicating that all the coefficients are found to be significant**. GDP has a positive effect on population, but deaths due to air pollution have a negative effect on population. 
 
-2. As shown above, post-pruning, our *accuracy is still 74%*. So, pruning had little effect even though the tree is now much simpler. Therefore, we have a model that can *predict high deaths due to air pollution with 74%  accuracy*.
+2. As shown above, post-pruning, our **accuracy is still 74%**. So, pruning had little effect even though the tree is now much simpler. Therefore, we have a model that can **predict high deaths due to air pollution with 74%  accuracy**.
 
-3. For the clustering, it is really interesting to observe that the main clusters 1, 3, and 4 have large discrepancies in regional representation while the data we used for clustering did not have any explicit geospatial components. This can mean that regionality, although may not be the cause, does have some correlation in determining the groups of factors in *GDP per Capita*, *Population*, and *Deaths due to Air Pollution per 100k*.
+3. For the clustering, it is really interesting to observe that the main clusters 1, 3, and 4 have large discrepancies in regional representation while the data we used for clustering did not have any explicit geospatial components. This can mean that regionality, although may not be the cause, does have some correlation in determining the groups of factors in **GDP per Capita**, **Population**, and **Deaths due to Air Pollution per 100k**.
 
-4. Although death caused by indoor air pollution and outdoor air pollution seems to have a *strong relationship with total death caused by air pollution*, but we *can’t accurately predict GDP* through death caused by indoor and outdoor air pollution.
+4. Although death caused by indoor air pollution and outdoor air pollution seems to have a **strong relationship with total death caused by air pollution**, but we **can’t accurately predict GDP** through death caused by indoor and outdoor air pollution.
 
 # 8. Bibliography
 
