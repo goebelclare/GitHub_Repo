@@ -487,7 +487,7 @@ The strength of the correlation can be quantified by our R^2^ value of `r summar
 SQ6 <- final_df
 library(dplyr)
 groupings_pop <- SQ6 %>% mutate(population_grouping = case_when(Population.thousands >=  100001 & Population.thousands <= 1000000000 ~ 2,
-                                             Population.thousands >= 100000  & Population.thousands <= 50001 ~ 1,
+                                             Population.thousands >= 50001  & Population.thousands <= 100001 ~ 1,
                                              Population.thousands >= 0 & Population.thousands <= 50000 ~ 0)) # end function
 ```
 
