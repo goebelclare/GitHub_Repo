@@ -481,9 +481,7 @@ The strength of the correlation can be quantified by our R^2^ value of `r summar
 
 ### 1. What are the impacts of population size from GDP and Deaths due to Air Pollution globally?
 
-1. Categorizing GDP into low, medium and high 
-
-2. Bulding a logit model GDP as predictor on Population  
+Bulding a logit model GDP as predictor on Population  
 
 ```{r}
 pop_gdpLogit <- glm(final_df$Population.thousands ~ final_df$gdp.per.capita, data = final_df)
@@ -498,13 +496,14 @@ xkabledply(pop_gdpLogit, title = paste("Logistic Regression :", format(formula(p
 3. Bulding a logit model GDP and Deaths due to Air Population as predictor on Population  
 
 ```{r}
-pop_gdp_deathsLogit <- glm(final_df$Population.thousands ~ final_df$gdp.per.capita, final_df$Deaths.Air.Pollution.per.100k, data = final_df)
+pop_gdp_deathsLogit <- glm(final_df$Population.thousands ~ final_df$gdp.per.capita + final_df$Deaths.Air.Pollution.per.100k, data = final_df)
 ```
 ```{r}
 summary(pop_gdp_deathsLogit)
 ```  
 ```{r}
 xkabledply(pop_gdp_deathsLogit, title = paste("Logistic Regression :", format(formula(pop_gdp_deathsLogit)) ))
+``` 
 
 
 ### 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
