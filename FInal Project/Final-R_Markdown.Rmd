@@ -499,9 +499,6 @@ pop_gdpLogit <- glm(population_grouping ~ groupings_pop$gdp.per.capita, data = g
 ```{r}
 summary(pop_gdpLogit)
 ```  
-```{r}
-xkabledply(pop_gdpLogit, title = paste("Logistic Regression :", format(formula(pop_gdpLogit)) ))
-```
 
 3. Bulding a logit model GDP and Deaths due to Air Population as predictor on Population  
 
@@ -511,9 +508,6 @@ pop_gdp_deathsLogit <- glm(population_grouping ~ groupings_pop$gdp.per.capita + 
 ```{r}
 summary(pop_gdp_deathsLogit)
 ```  
-```{r}
-xkabledply(pop_gdp_deathsLogit, title = paste("Logistic Regression :", format(formula(pop_gdp_deathsLogit)) ))
-``` 
 
 ### 2. What are the effects of (low or high) GDP and population size on deaths due to air pollution in Sub-Saharan Africa?
 
