@@ -486,7 +486,7 @@ The strength of the correlation can be quantified by our R^2^ value of `r summar
 2. Bulding a logit model GDP as predictor on Population  
 
 ```{r}
-pop_gdpLogit <- glm(final_df$Population.thousands ~ final_df$gdp.per.capita, data = titanic_orig)
+pop_gdpLogit <- glm(final_df$Population.thousands ~ final_df$gdp.per.capita, data = final_df)
 ```
 ```{r}
 summary(pop_gdpLogit)
